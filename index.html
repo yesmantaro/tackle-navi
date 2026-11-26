@@ -522,6 +522,529 @@ setTimeout(()=>URL.revokeObjectURL(url),1000);
 function pending(name){
 show(back()+`<h2>${name}</h2><div class="panel">この機能は今後追加します。</div>`)
 }
+  
+/* ========================================
+   TACKLE NAVI Ver.0.4
+   釣行準備チェックリスト
+======================================== */
+
+const VERSION='0.4';
+
+document.querySelector('footer').textContent=
+'TACKLE NAVI | Ver. '+VERSION;
+
+const newStyle=document.createElement('style');
+newStyle.textContent=`
+.checkrow{
+display:flex;
+align-items:center;
+gap:12px;
+padding:14px 0;
+border-bottom:1px solid #e5edf3;
+cursor:pointer;
+}
+.checkrow input{
+width:23px;
+height:23px;
+margin:0;
+flex-shrink:0;
+accent-color:#176b9b;
+}
+.checkrow.done span{
+color:#52748c;
+text-decoration:line-through;
+}
+.prepbar{
+height:12px;
+background:#d2e4ef;
+border-radius:20px;
+overflow:hidden;
+margin:12px 0;
+}
+.prepbar div{
+height:100%;
+background:#176b9b;
+transition:width .2s;
+}
+.prepnum{
+font-size:32px;
+font-weight:bold;
+color:#176b9b;
+}
+.reason{
+background:#eef6fc;
+padding:12px;
+border-radius:10px;
+font-size:14px;
+line-height:1.7;
+}
+`;
+document.head.appendChild(newStyle);
+
+function checklistItems(p){
+
+let g=methods[p.method]||[];
+
+let rod=g[0]||'対象魚用ロッド';
+let reel=g[1]||'適合するリール';
+let rig=g[2]||'仕掛け';
+
+let footwear='滑りにくい靴';
+let safety='天候・風・水辺の状況の確認';
+
+if(p.type==='海釣り'){
+safety='天候・波・風・潮汐の確認';
+}
+
+if(p.place==='磯'){
+footwear='磯に適した滑り止め付きシューズ';
+}
+
+if(p.place==='砂浜'){
+footwear='砂浜に適した靴';
+}
+
+if(p.place==='河川'){
+footwear='河川に適した靴';
+safety='天候・水位・増水情報の確認';
+}
+
+if(p.place==='船'){
+footwear='船上用の滑りにくい靴';
+safety='出船情報・波・風の確認';
+}
+
+return [
+{id:'rod',name:rod,group:'釣具'},
+{id:'reel',name:reel==='不要'?
+'予備の釣具':reel,group:'釣具'},
+{id:'line',name:'ライン・糸',group:'釣具'},
+{id:'rig',name:rig,group:'釣具'},
+{id:'spare',name:'予備仕掛け',group:'釣具'},
+{id:'tools',name:'ハサミ・プライヤー',group:'釣具'},
+{id:'cooler',name:'クーラーボックス',group:'持ち物'},
+{id:'ice',name:'氷・保冷剤',group:'持ち物'},
+{id:'drink',name:'飲料水',group:'持ち物'},
+{id:'towel',name:'タオル・ゴミ袋',group:'持ち物'},
+{id:'life',name:'ライフジャケット',group:'安全確認'},
+{id:'shoes',name:footwear,group:'安全確認'},
+{id:'weather',name:safety,group:'安全確認'},
+{id:'rules',name:'立入禁止・釣り場ルールの確認',group:'安全確認'}
+];
+}
+
+function prepStatus(p){
+let items=checklistItems(p);
+let checks=p.checklist||{};
+let done=items.filter(x=>checks[x.id]===true).length;
+
+return {
+done:done,
+total:items.length,
+percent:Math.round(done/items.length*100),
+missing:items.filter(x=>checks[x.id]!==true)
+};
+}
+
+function prepSummary(p){
+let s=prepStatus(p);
+
+return `
+<div class="prepnum">${s.percent}%</div>
+<div class="prepbar">
+<div style="width:${s.percent}%"></div>
+</div>
+<small>${s.done} / ${s.total} 項目完了</small>
+`;
+}
+
+/* 釣行プラン一覧を更新 */
+
+savedPlans=function(){
+
+let data=read('plans');
+
+show(back()+`
+<h2>マイ釣行プラン</h2>
+
+${data.length?data.map((p,i)=>`
+
+<div class="panel">
+
+<b>${esc(p.date)}　${esc(p.fish)}</b>
+
+<p>📍 ${esc(p.location)}</p>
+
+<p>
+${esc(p.type)} /
+${esc(p.method)} /
+${esc(p.place)}
+</p>
+
+<p>${esc(p.memo)}</p>
+
+<h3>釣行準備状況</h3>
+
+${prepSummary(p)}
+
+<br><br>
+
+<button class="primary"
+onclick="prepScreen(${i})">
+☑ 釣行準備チェック
+</button>
+
+<button class="sub"
+onclick="editPlan(${i})">編集</button>
+
+<button class="sub"
+onclick="removeItem('plans',${i})">削除</button>
+
+<button class="sub"
+onclick="catchFromPlan(${i})">釣果を記録</button>
+
+</div>
+
+`).join(''):'<p>保存されたプランはありません。</p>'}
+
+<button class="primary" onclick="start()">
+新しい釣行プラン
+</button>
+`);
+};
+
+/* チェックリスト画面 */
+
+function prepScreen(i){
+
+let p=read('plans')[i];
+
+if(!p)return savedPlans();
+
+let items=checklistItems(p);
+let checks=p.checklist||{};
+
+show(back('savedPlans')+`
+
+<h2>釣行準備チェックリスト</h2>
+
+<div class="panel">
+
+<b>${esc(p.fish)} × ${esc(p.method)}</b>
+
+<p>📍 ${esc(p.location)}</p>
+
+<p>📅 ${esc(p.date)}</p>
+
+<div id="prepSummary">
+${prepSummary(p)}
+</div>
+
+</div>
+
+${['釣具','持ち物','安全確認'].map(group=>`
+
+<div class="panel">
+
+<h3>${group}</h3>
+
+${items.filter(x=>x.group===group).map(x=>`
+
+<label class="checkrow ${checks[x.id]?'done':''}">
+
+<input type="checkbox"
+${checks[x.id]?'checked':''}
+onchange="togglePrep(${i},'${x.id}',this)">
+
+<span>${esc(x.name)}</span>
+
+</label>
+
+`).join('')}
+
+</div>
+
+`).join('')}
+
+<div class="panel" id="missingPrep">
+${missingPrepHTML(p)}
+</div>
+
+<button class="sub"
+onclick="resetPrep(${i})">
+チェックをリセット
+</button>
+
+<button class="primary"
+onclick="savedPlans()">
+釣行プラン一覧に戻る
+</button>
+
+<small>
+チェック状況は自動保存されます。
+準備完了率は安全性を保証するものではありません。
+現地の状況も必ず確認してください。
+</small>
+`);
+}
+
+function missingPrepHTML(p){
+
+let s=prepStatus(p);
+
+return `
+<h3>未準備の項目（${s.missing.length}件）</h3>
+
+${s.missing.length?
+
+s.missing.map(x=>`
+<p class="warn">□ ${esc(x.name)}</p>
+`).join(''):
+
+'<p class="good">✓ 全項目チェック済み</p>'
+}
+`;
+}
+
+function togglePrep(i,id,input){
+
+let data=read('plans');
+
+if(!data[i])return savedPlans();
+
+let p=data[i];
+
+p.checklist={
+...(p.checklist||{}),
+[id]:input.checked
+};
+
+if(!write('plans',data)){
+input.checked=!input.checked;
+return;
+}
+
+input.closest('label').classList.toggle(
+'done',input.checked
+);
+
+document.getElementById('prepSummary').innerHTML=
+prepSummary(p);
+
+document.getElementById('missingPrep').innerHTML=
+missingPrepHTML(p);
+}
+
+function resetPrep(i){
+
+if(!confirm('チェック状況をリセットしますか？'))return;
+
+let data=read('plans');
+
+if(!data[i])return savedPlans();
+
+data[i].checklist={};
+
+if(write('plans',data))prepScreen(i);
+}
+
+/* おすすめタックルの選定理由 */
+
+const methodReasons={
+
+'アジング':[
+'軽量なジグヘッドを操作し、小さなアタリを捉えるため。',
+'軽量な仕掛けに合わせやすく、細いラインを扱うため。',
+'小魚やプランクトンなどのエサを模した誘いができるため。'
+],
+
+'メバリング':[
+'軽量ルアーを操作し、繊細なアタリを捉えるため。',
+'細いラインを使った釣りに合わせやすいため。',
+'メバルが捕食する小魚などを模して誘うため。'
+],
+
+'サビキ釣り':[
+'複数のハリが付いた仕掛けを扱いやすくするため。',
+'仕掛けの投入と回収を行いやすくするため。',
+'コマセで魚を集め、複数のハリで狙うため。'
+],
+
+'ショアジギング':[
+'重いメタルジグの遠投と操作に対応するため。',
+'遠投に必要な糸巻量と魚に対応する性能を確保するため。',
+'小魚を模したルアーで広い範囲を探るため。'
+],
+
+'エギング':[
+'エギを操作し、イカの反応を捉えるため。',
+'繰り返しのキャストとライン操作に対応するため。',
+'エビなどを模したエギでイカを誘うため。'
+],
+
+'チニング':[
+'底付近のルアー操作とアタリの把握に適するため。',
+'使用するラインやルアー重量に合わせるため。',
+'カニや小魚などを模してクロダイを誘うため。'
+],
+
+'投げ釣り':[
+'オモリを使った遠投に対応するため。',
+'遠投に必要なライン量を確保するため。',
+'海底付近にエサを届けて魚を狙うため。'
+],
+
+'穴釣り':[
+'狭い隙間で仕掛けを操作しやすくするため。',
+'短い距離で仕掛けを上下させやすくするため。',
+'岩の隙間などに潜む魚を狙うため。'
+],
+
+'フカセ釣り':[
+'仕掛けやラインを操作しやすくするため。',
+'ラインの放出と魚とのやり取りを行うため。',
+'コマセと付けエサを同調させて魚を誘うため。'
+],
+
+'泳がせ釣り':[
+'生きエサと対象魚の大きさに対応するため。',
+'対象魚に必要な糸巻量やドラグ性能を確保するため。',
+'生きエサの動きで捕食魚を誘うため。'
+],
+
+'ウキ釣り':[
+'ウキを使った仕掛けを操作するため。',
+'必要な距離や水深に仕掛けを届けるため。',
+'ウキでアタリを確認し、狙う水深を調整するため。'
+],
+
+'友釣り':[
+'オトリアユを流れの中で操作するため。',
+'一般的な友釣りではリールを使用しないため。',
+'アユの縄張り行動を利用して釣るため。'
+],
+
+'タイラバ':[
+'タイラバの操作と魚の引きに対応するため。',
+'船上での落とし込みと巻き上げを行うため。',
+'海底付近から一定速度で巻いてマダイを誘うため。'
+],
+
+'ルアー釣り':[
+'対象魚とルアーの重量に合わせて操作するため。',
+'対象魚やラインの太さに対応するため。',
+'対象魚が捕食するエサを模して誘うため。'
+],
+
+'エサ釣り':[
+'対象魚と釣り場に合わせて仕掛けを操作するため。',
+'必要な距離や水深に対応するため。',
+'対象魚が好むエサで食いつきを誘うため。'
+],
+
+'吸い込み釣り':[
+'練りエサやオモリを使った仕掛けに対応するため。',
+'仕掛けの投入と大型魚とのやり取りに対応するため。',
+'エサを吸い込むコイの習性を利用するため。'
+]
+};
+
+const originalRecommendScreen=recommendScreen;
+
+recommendScreen=function(){
+
+originalRecommendScreen();
+
+let reasons=methodReasons[planData.method];
+
+if(!reasons)return;
+
+let panels=app.querySelectorAll('.panel');
+
+for(let i=0;i<3;i++){
+
+if(!panels[i])continue;
+
+let div=document.createElement('div');
+
+div.className='reason';
+
+div.textContent='選定理由：'+reasons[i];
+
+panels[i].appendChild(div);
+}
+};
+
+/* 新規釣行プラン保存 */
+
+savePlan=function(e){
+
+e.preventDefault();
+
+let data=read('plans');
+
+data.push({
+...planData,
+date:value('date'),
+location:value('location'),
+memo:value('memo'),
+checklist:{}
+});
+
+if(write('plans',data)){
+prepScreen(data.length-1);
+}
+};
+
+/* 設定画面のバージョン更新 */
+
+const originalSettings=settings;
+
+settings=function(){
+
+originalSettings();
+
+let paragraphs=app.querySelectorAll('p');
+
+paragraphs.forEach(p=>{
+if(p.textContent==='バージョン 0.3'){
+p.textContent='バージョン '+VERSION;
+}
+});
+};
+
+/* バックアップ更新 */
+
+backup=function(){
+
+let data={
+version:VERSION,
+tackle:read('tackle'),
+plans:read('plans'),
+catches:read('catches')
+};
+
+let blob=new Blob(
+[JSON.stringify(data,null,2)],
+{type:'application/json'}
+);
+
+let url=URL.createObjectURL(blob);
+
+let a=document.createElement('a');
+
+a.href=url;
+
+a.download=
+'tackle-navi-backup-'+today()+'.json';
+
+a.click();
+
+setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+
+/* Ver.0.4 追加コード終了 */
+
 home();
 </script>
 </body>
