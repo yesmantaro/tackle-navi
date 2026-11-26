@@ -1,0 +1,82 @@
+ 
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TACKLE NAVI</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#eaf4fc;font-family:sans-serif;color:#123e60}
+header{background:#123e60;color:white;padding:20px;text-align:center;font-size:24px;font-weight:bold}
+main{max-width:600px;margin:auto;padding:18px}
+.hero{background:linear-gradient(135deg,#176b9b,#123e60);color:white;padding:24px;border-radius:18px;margin-bottom:20px}
+h2{margin-top:0}
+.menu{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{font-family:inherit;cursor:pointer}
+.tile{background:white;border:1px solid #d6e5ef;border-radius:16px;padding:22px 8px;color:#123e60;font-size:16px;font-weight:bold;min-height:115px;box-shadow:0 3px 8px #123e6010}
+.tile span{display:block;font-size:34px;margin-bottom:10px}
+.primary{width:100%;background:#176b9b;color:white;border:0;border-radius:14px;padding:20px;font-size:19px;font-weight:bold;margin-bottom:14px}
+.back{background:white;border:1px solid #ccdce8;border-radius:10px;padding:12px;color:#123e60;margin-bottom:20px}
+footer{text-align:center;padding:20px;color:#52748c;font-size:12px}
+</style>
+</head>
+<body>
+<header>🎣 TACKLE NAVI</header>
+<main id="app"></main>
+<footer>TACKLE NAVI | Ver. 0.1</footer>
+<script>
+const app=document.getElementById('app');
+
+function home(){
+app.innerHTML=`
+<div class="hero">
+<h2>次の釣りを、もっと楽しく。</h2>
+<p>釣りの計画から釣果の記録まで。</p>
+</div>
+<button class="primary" onclick="plan()">🎣 釣りを計画する</button>
+<div class="menu">
+<button class="tile" onclick="page('マイタックル')"><span>🎒</span>マイタックル</button>
+<button class="tile" onclick="page('マイ釣行プラン')"><span>📅</span>マイ釣行プラン</button>
+<button class="tile" onclick="page('釣果記録')"><span>📷</span>釣果記録</button>
+<button class="tile" onclick="page('釣果アルバム')"><span>🐟</span>釣果アルバム</button>
+<button class="tile" onclick="page('全国釣果マップ')"><span>🗺️</span>全国釣果マップ</button>
+<button class="tile" onclick="page('ランキング')"><span>🏆</span>ランキング</button>
+<button class="tile" onclick="page('釣具データベース')"><span>🔍</span>釣具データベース</button>
+<button class="tile" onclick="page('設定')"><span>⚙️</span>設定</button>
+</div>`;
+}
+
+function plan(){
+app.innerHTML=`
+<button class="back" onclick="home()">← ホームに戻る</button>
+<h2>どこで釣りをする？</h2>
+<p>釣りのジャンルを選んでね。</p>
+<button class="primary" onclick="fish('海釣り')">🌊 海釣り</button>
+<button class="primary" onclick="fish('川・湖釣り')">🏞️ 川・湖釣り</button>`;
+}
+
+function fish(type){
+const list=type==='海釣り'
+?['アジ','サバ','シーバス','ヒラメ','クロダイ','メバル','イカ','その他']
+:['ブラックバス','トラウト','アユ','コイ','フナ','その他'];
+app.innerHTML=`
+<button class="back" onclick="plan()">← 戻る</button>
+<h2>${type}</h2>
+<p>釣りたい魚を選んでね。</p>
+<div class="menu">
+${list.map(f=>`<button class="tile" onclick="page('${f}の釣り方')"><span>🐟</span>${f}</button>`).join('')}
+</div>`;
+}
+
+function page(name){
+app.innerHTML=`
+<button class="back" onclick="home()">← ホームに戻る</button>
+<h2>${name}</h2>
+<p>この機能は次の開発ステップで追加します。</p>`;
+}
+
+home();
+</script>
+</body>
+</html>
