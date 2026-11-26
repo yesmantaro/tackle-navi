@@ -9,7 +9,7 @@
 *{box-sizing:border-box}
 body{margin:0;background:#eaf4fc;color:#123e60;font-family:sans-serif}
 header{background:#123e60;color:white;padding:20px;text-align:center;font-size:24px;font-weight:bold}
-main{max-width:600px;margin:auto;padding:18px}
+main{max-width:650px;margin:auto;padding:18px}
 h2{margin-top:0}
 .hero{background:linear-gradient(135deg,#176b9b,#123e60);color:white;padding:24px;border-radius:18px;margin-bottom:20px}
 .menu{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -17,20 +17,32 @@ button{font-family:inherit;cursor:pointer}
 .tile{background:white;border:1px solid #d6e5ef;border-radius:16px;padding:20px 8px;color:#123e60;font-size:16px;font-weight:bold;min-height:100px}
 .tile span{display:block;font-size:32px;margin-bottom:8px}
 .primary{width:100%;background:#176b9b;color:white;border:0;border-radius:14px;padding:18px;font-size:18px;font-weight:bold;margin-bottom:14px}
-.back{background:white;border:1px solid #ccdce8;border-radius:10px;padding:12px;color:#123e60;margin-bottom:20px}
+.back,.sub{background:white;border:1px solid #ccdce8;border-radius:10px;padding:12px;color:#123e60;margin:0 6px 12px 0}
 .panel{background:white;padding:18px;border-radius:14px;margin-bottom:14px;overflow-wrap:anywhere}
-input,select{width:100%;padding:12px;margin:8px 0 16px;border:1px solid #ccdce8;border-radius:8px;font-size:16px}
+input,select,textarea{width:100%;padding:12px;margin:8px 0 16px;border:1px solid #ccdce8;border-radius:8px;font-size:16px;background:white}
+label{display:block}
 footer{text-align:center;padding:20px;font-size:12px}
 small{color:#52748c}
+.good{color:#168047;font-weight:bold}
+.warn{color:#b77910;font-weight:bold}
+.bad{color:#c0392b;font-weight:bold}
+.photo{width:100%;max-height:320px;object-fit:contain;border-radius:12px;background:#eef4f8}
+.progress{height:6px;background:#d2e4ef;border-radius:10px;margin:0 0 20px;overflow:hidden}
+.progress div{height:100%;background:#176b9b}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat{background:white;padding:18px;border-radius:12px;text-align:center}
+.stat strong{display:block;font-size:26px;margin-top:8px}
 </style>
 </head>
 <body>
-<header>🎣 TACKLE NAVI</header>
+<header onclick="home()">🎣 TACKLE NAVI</header>
 <main id="app"></main>
-<footer>TACKLE NAVI | Ver. 0.2</footer>
+<footer>TACKLE NAVI | Ver. 0.3</footer>
 <script>
 const app=document.getElementById('app');
 let planData={};
+let photoData='';
+let photoLoading=false;
 const db={
 'アジ':['サビキ釣り','アジング','ウキ釣り'],
 'サバ':['サビキ釣り','ショアジギング'],
@@ -41,31 +53,80 @@ const db={
 'イカ':['エギング','ウキ釣り'],
 'キス':['投げ釣り'],
 'カサゴ':['穴釣り','ルアー釣り'],
+'マダイ':['タイラバ','フカセ釣り'],
+'ブリ':['ショアジギング','泳がせ釣り'],
+'タチウオ':['ルアー釣り','ウキ釣り'],
 'ブラックバス':['ルアー釣り'],
 'トラウト':['ルアー釣り','エサ釣り'],
 'アユ':['友釣り','エサ釣り'],
 'コイ':['吸い込み釣り','ウキ釣り'],
-'フナ':['ウキ釣り']
+'フナ':['ウキ釣り'],
+'ナマズ':['ルアー釣り'],
+'ヤマメ':['ルアー釣り','エサ釣り'],
+'イワナ':['ルアー釣り','エサ釣り']
+};
+const freshwater=['ブラックバス','トラウト','アユ','コイ','フナ','ナマズ','ヤマメ','イワナ'];
+const methods={
+'アジング':['アジングロッド','小型スピニングリール','ジグヘッド・ワーム','5〜7ft','1000〜2000番',0.5,5],
+'メバリング':['メバリングロッド','小型スピニングリール','ジグヘッド・ワーム','6〜8ft','1000〜2500番',1,7],
+'サビキ釣り':['磯竿・万能竿','スピニングリール','サビキ仕掛け・コマセ','3〜5m','2000〜3000番'],
+'ショアジギング':['ショアジギングロッド','スピニングリール','メタルジグ','9〜11ft','4000〜6000番',30,60],
+'エギング':['エギングロッド','スピニングリール','エギ','7〜9ft','2500〜3000番'],
+'チニング':['チニングロッド','適合するリール','チニング用ルアー','7〜8ft','2000〜3000番',5,15],
+'ルアー釣り':['対象魚用ロッド','適合するリール','対象魚用ルアー','対象魚による','対象魚による'],
+'投げ釣り':['投げ竿','スピニングリール','天秤・投げ仕掛け','3〜4m','3000〜5000番'],
+'穴釣り':['短竿','小型リール','ブラクリ仕掛け','1〜2m','小型'],
+'フカセ釣り':['磯竿','スピニングリール','ウキ・ハリ・コマセ','4〜5.3m','2500〜3000番'],
+'泳がせ釣り':['対象魚用ロッド','適合するリール','泳がせ仕掛け','対象魚による','対象魚による'],
+'ウキ釣り':['万能竿・磯竿','必要に応じたリール','ウキ・ハリ・エサ','釣り場による','釣り場による'],
+'友釣り':['アユ竿','不要','友釣り仕掛け','7〜9m','不要'],
+'エサ釣り':['対象魚用ロッド','必要に応じたリール','ハリ・エサ','対象魚による','対象魚による'],
+'吸い込み釣り':['コイ用ロッド','適合するリール','吸い込み仕掛け','3〜4m','3000〜5000番'],
+'タイラバ':['タイラバロッド','ベイトリール','タイラバ','6〜7ft','小型両軸']
 };
 function read(key){
-try{return JSON.parse(localStorage.getItem(key)||'[]')}catch(e){return []}
+try{
+let d=JSON.parse(localStorage.getItem(key)||'[]');
+return Array.isArray(d)?d:[];
+}catch(e){return []}
 }
 function write(key,data){
-try{localStorage.setItem(key,JSON.stringify(data));return true}
-catch(e){alert('保存できませんでした');return false}
+try{
+localStorage.setItem(key,JSON.stringify(data));
+return true;
+}catch(e){
+alert('保存できません。端末の空き容量や写真サイズを確認してください。');
+return false;
+}
 }
 function esc(v){
 return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
-}
-function back(fn){
-return `<button class="back" onclick="${fn}()">← 戻る</button>`
 }
 function show(html){
 app.innerHTML=html;
 window.scrollTo(0,0);
 }
+function back(fn='home'){
+return `<button class="back" onclick="${fn}()">← 戻る</button>`
+}
+function step(n){
+return `<small>STEP ${n} / 5</small><div class="progress"><div style="width:${n*20}%"></div></div>`
+}
 function choices(items,fn,emoji){
 return `<div class="menu">${items.map(x=>`<button class="tile" onclick="${fn}('${x}')"><span>${emoji}</span>${x}</button>`).join('')}</div>`
+}
+function value(id){
+return document.getElementById(id)?.value.trim()||'';
+}
+function today(){
+let d=new Date();
+return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function field(label,id,v='',type='text',extra=''){
+return `<label>${label}<input id="${id}" type="${type}" value="${esc(v)}" ${extra}></label>`
+}
+function options(items,current){
+return items.map(x=>`<option ${x===current?'selected':''}>${esc(x)}</option>`).join('');
 }
 function home(){
 show(`
@@ -73,16 +134,20 @@ show(`
 <h2>次の釣りを、もっと楽しく。</h2>
 <p>釣りの計画から釣果の記録まで。</p>
 </div>
+<div class="stats">
+<div class="stat">登録タックル<strong>${read('tackle').length}</strong></div>
+<div class="stat">釣行プラン<strong>${read('plans').length}</strong></div>
+</div><br>
 <button class="primary" onclick="start()">🎣 釣りを計画する</button>
 <div class="menu">
 <button class="tile" onclick="tackle()"><span>🎒</span>マイタックル</button>
 <button class="tile" onclick="savedPlans()"><span>📅</span>マイ釣行プラン</button>
-<button class="tile" onclick="pending('釣果記録')"><span>📷</span>釣果記録</button>
-<button class="tile" onclick="pending('釣果アルバム')"><span>🐟</span>釣果アルバム</button>
+<button class="tile" onclick="catchForm()"><span>📷</span>釣果記録</button>
+<button class="tile" onclick="album()"><span>🐟</span>釣果アルバム</button>
 <button class="tile" onclick="pending('全国釣果マップ')"><span>🗺️</span>全国釣果マップ</button>
 <button class="tile" onclick="pending('ランキング')"><span>🏆</span>ランキング</button>
 <button class="tile" onclick="pending('釣具データベース')"><span>🔍</span>釣具データベース</button>
-<button class="tile" onclick="pending('設定')"><span>⚙️</span>設定</button>
+<button class="tile" onclick="settings()"><span>⚙️</span>設定</button>
 </div>`)
 }
 function start(){
@@ -90,7 +155,7 @@ planData={};
 water();
 }
 function water(){
-show(back('home')+`
+show(back()+`
 <h2>どこで釣りをする？</h2>
 <button class="primary" onclick="fish('海釣り')">🌊 海釣り</button>
 <button class="primary" onclick="fish('川・湖釣り')">🏞️ 川・湖釣り</button>`)
@@ -100,16 +165,15 @@ planData.type=type;
 fishScreen();
 }
 function fishScreen(){
-let items=Object.keys(db);
-items=planData.type==='海釣り'?items.slice(0,9):items.slice(9);
-show(back('water')+`<small>STEP 1 / 5</small><h2>釣りたい魚を選択</h2>`+choices(items,'method','🐟'))
+let items=Object.keys(db).filter(x=>planData.type==='海釣り'?!freshwater.includes(x):freshwater.includes(x));
+show(back('water')+step(1)+`<h2>釣りたい魚を選択</h2>`+choices(items,'method','🐟'))
 }
 function method(name){
 planData.fish=name;
 methodScreen();
 }
 function methodScreen(){
-show(back('fishScreen')+`<small>STEP 2 / 5</small><h2>${planData.fish}の釣り方</h2>`+choices(db[planData.fish],'place','🎣'))
+show(back('fishScreen')+step(2)+`<h2>${planData.fish}の釣り方</h2>`+choices(db[planData.fish],'place','🎣'))
 }
 function place(name){
 planData.method=name;
@@ -117,53 +181,76 @@ placeScreen();
 }
 function placeScreen(){
 let items=planData.type==='海釣り'?['堤防','漁港','砂浜','磯','船']:['河川','湖','池','管理釣り場'];
-show(back('methodScreen')+`<small>STEP 3 / 5</small><h2>釣り場を選択</h2>`+choices(items,'recommend','📍'))
-}
-function gear(){
-const data={
-'サビキ釣り':['磯竿・万能竿','スピニングリール','サビキ仕掛け・コマセ'],
-'アジング':['アジングロッド','小型スピニングリール','ジグヘッド・ワーム'],
-'ショアジギング':['ショアジギングロッド','スピニングリール','メタルジグ'],
-'エギング':['エギングロッド','スピニングリール','エギ'],
-'メバリング':['メバリングロッド','小型スピニングリール','ジグヘッド・ワーム'],
-'ルアー釣り':['対象魚用ルアーロッド','適合するリール','対象魚用ルアー'],
-'投げ釣り':['投げ竿','スピニングリール','天秤・投げ仕掛け'],
-'穴釣り':['短竿','小型リール','ブラクリ仕掛け'],
-'フカセ釣り':['磯竿','スピニングリール','ウキ・ハリ・コマセ'],
-'チニング':['チニングロッド','適合するリール','チニング用ルアー'],
-'泳がせ釣り':['対象魚に合う竿','適合するリール','泳がせ仕掛け'],
-'ウキ釣り':['対象魚に合う竿','必要に応じたリール','ウキ・ハリ・エサ'],
-'友釣り':['アユ竿','不要','友釣り仕掛け'],
-'エサ釣り':['対象魚に合う竿','必要に応じたリール','ハリ・エサ'],
-'吸い込み釣り':['コイ用竿','適合するリール','吸い込み仕掛け']
-};
-return data[planData.method];
+show(back('methodScreen')+step(3)+`<h2>釣り場を選択</h2>`+choices(items,'recommend','📍'))
 }
 function recommend(name){
 planData.place=name;
 recommendScreen();
 }
+function judge(t,g,i){
+if(i===0&&g[5]!=null){
+if(t.min==null||t.max==null||t.min===''||t.max==='')return ['warn','重量スペック未登録'];
+let min=Number(t.min),max=Number(t.max);
+if(!Number.isFinite(min)||!Number.isFinite(max)||min>max)return ['warn','重量スペック要確認'];
+if(min<=g[5]&&max>=g[6])return ['good','推奨重量範囲をカバー'];
+if(max>=g[5]&&min<=g[6])return ['warn','推奨重量範囲と一部重複'];
+return ['bad','推奨重量範囲外'];
+}
+if(i===1&&t.size){
+let m=g[4].match(/^(\d+)〜(\d+)番$/);
+let n=String(t.size).match(/^\d+$/);
+if(m&&n){
+let size=Number(n[0]);
+return size>=Number(m[1])&&size<=Number(m[2])?['good','推奨番手の範囲内']:['warn','推奨番手と異なる'];
+}
+}
+return ['warn','詳細な適合性は未判定'];
+}
 function recommendScreen(){
-let g=gear();
+let g=methods[planData.method];
 let owned=read('tackle');
-show(back('placeScreen')+`
-<small>STEP 4 / 5</small>
+let categories=['ロッド','リール','仕掛け'];
+let missing=[];
+let matches=categories.map((c,i)=>{
+if(g[i]==='不要')return `<div class="panel"><b>${c}</b><p>不要</p></div>`;
+let list=owned.filter(t=>t.category===c);
+if(!list.length){
+missing.push(c);
+return `<div class="panel"><b>${c}</b><p class="bad">未登録</p></div>`;
+}
+return `<div class="panel"><b>${c}</b>${list.map(t=>{
+let j=judge(t,g,i);
+return `<p>${esc(t.maker||'')} ${esc(t.name)}<br><small class="${j[0]}">${j[1]}</small></p>`
+}).join('')}</div>`
+}).join('');
+show(back('placeScreen')+step(4)+`
 <h2>おすすめタックル</h2>
 <p>${planData.fish} × ${planData.method}</p>
-${g.map((x,i)=>`<div class="panel"><b>${['ロッド','リール','仕掛け'][i]}</b><p>${x}</p></div>`).join('')}
+<div class="panel">
+<h3>🎣 ロッド</h3>
+<p>${g[0]}</p>
+<p>長さの目安：${g[3]}</p>
+${g[5]!=null?`<p>ルアー重量の目安：${g[5]}〜${g[6]}g</p>`:''}
+</div>
+<div class="panel">
+<h3>⚙️ リール</h3>
+<p>${g[1]}</p>
+<p>番手の目安：${g[4]}</p>
+</div>
+<div class="panel">
+<h3>🪝 仕掛け</h3><p>${g[2]}</p>
+</div>
 <h3>マイタックルとの照合</h3>
-<div class="panel">${g.map((x,i)=>{
-let category=['ロッド','リール','仕掛け'][i];
-let matches=owned.filter(t=>t.category===category);
-return `<p><b>${category}</b><br>${x==='不要'?'不要':matches.length?matches.map(t=>esc(t.name)).join('、'):'未登録'}</p>`
-}).join('')}
-<small>登録カテゴリによる簡易照合です。実際の適合性は確認してください。</small>
+${matches}
+<div class="panel">
+<h3>未登録の釣具</h3>
+<p>${missing.length?missing.join('・'):'必要カテゴリは登録済み'}</p>
+<small>未登録は未所有とは限りません。適合判定は重量・番手の一部条件のみです。釣り場や対象魚、製品仕様も確認してください。</small>
 </div>
 <button class="primary" onclick="details()">釣行プランを作成する</button>`)
 }
 function details(){
-show(back('recommendScreen')+`
-<small>STEP 5 / 5</small>
+show(back('recommendScreen')+step(5)+`
 <h2>釣行プラン作成</h2>
 <div class="panel">
 <p>対象魚：${planData.fish}</p>
@@ -171,64 +258,269 @@ show(back('recommendScreen')+`
 <p>釣り場：${planData.place}</p>
 </div>
 <form onsubmit="savePlan(event)">
-<label>釣行日<input type="date" id="date" required></label>
-<label>釣り場の名称<input id="location" placeholder="例：〇〇漁港" required></label>
-<label>メモ<input id="memo" placeholder="持ち物・集合時間など"></label>
+${field('釣行日','date',planData.date||today(),'date','required')}
+${field('釣り場の名称','location',planData.location,'text','required')}
+<label>メモ<textarea id="memo">${esc(planData.memo)}</textarea></label>
 <button class="primary">釣行プランを保存</button>
 </form>`)
 }
 function savePlan(e){
 e.preventDefault();
 let data=read('plans');
-data.push({...planData,date:document.getElementById('date').value,location:document.getElementById('location').value,memo:document.getElementById('memo').value});
-if(write('plans',data)){
-alert('釣行プランを保存しました');
-savedPlans();
-}
+data.push({...planData,date:value('date'),location:value('location'),memo:value('memo')});
+if(write('plans',data))savedPlans();
 }
 function savedPlans(){
 let data=read('plans');
-show(back('home')+`<h2>マイ釣行プラン</h2>`+
+show(back()+`<h2>マイ釣行プラン</h2>`+
 (data.length?data.map((p,i)=>`<div class="panel">
 <b>${esc(p.date)}　${esc(p.fish)}</b>
-<p>${esc(p.location)}</p>
+<p>📍 ${esc(p.location)}</p>
 <p>${esc(p.type)} / ${esc(p.method)} / ${esc(p.place)}</p>
 <p>${esc(p.memo)}</p>
-<button class="back" onclick="removeItem('plans',${i})">削除</button>
+<button class="sub" onclick="editPlan(${i})">編集</button>
+<button class="sub" onclick="removeItem('plans',${i})">削除</button>
+<button class="sub" onclick="catchFromPlan(${i})">釣果を記録</button>
 </div>`).join(''):'<p>保存されたプランはありません。</p>')+
 `<button class="primary" onclick="start()">新しい釣行プラン</button>`)
 }
+function editPlan(i){
+let p=read('plans')[i];
+if(!p)return savedPlans();
+show(back('savedPlans')+`
+<h2>釣行プラン編集</h2>
+<form class="panel" onsubmit="updatePlan(event,${i})">
+<p>${esc(p.fish)} / ${esc(p.method)}</p>
+${field('釣行日','date',p.date,'date','required')}
+${field('釣り場の名称','location',p.location,'text','required')}
+<label>メモ<textarea id="memo">${esc(p.memo)}</textarea></label>
+<button class="primary">変更を保存</button>
+</form>`)
+}
+function updatePlan(e,i){
+e.preventDefault();
+let data=read('plans');
+if(!data[i])return savedPlans();
+data[i]={...data[i],date:value('date'),location:value('location'),memo:value('memo')};
+if(write('plans',data))savedPlans();
+}
 function tackle(){
 let data=read('tackle');
-show(back('home')+`
+show(back()+`
 <h2>マイタックル</h2>
-<form class="panel" onsubmit="addTackle(event)">
-<label>種類<select id="category">
-<option>ロッド</option>
-<option>リール</option>
-<option>仕掛け</option>
-</select></label>
-<label>商品名<input id="name" placeholder="メーカー・商品名" required></label>
-<button class="primary">タックルを登録</button>
-</form>
-${data.map((t,i)=>`<div class="panel"><small>${esc(t.category)}</small><p>${esc(t.name)}</p><button class="back" onclick="removeItem('tackle',${i})">削除</button></div>`).join('')}`)
+<button class="primary" onclick="tackleForm()">＋ タックルを登録</button>
+${data.length?data.map((t,i)=>`<div class="panel">
+<small>${esc(t.category)}</small>
+<h3>${esc(t.maker||'')} ${esc(t.name)}</h3>
+${t.length?`<p>長さ：${esc(t.length)}</p>`:''}
+${t.power?`<p>硬さ：${esc(t.power)}</p>`:''}
+${t.min!=null&&t.min!==''&&t.max!=null&&t.max!==''?`<p>適合重量：${esc(t.min)}〜${esc(t.max)}g</p>`:''}
+${t.size?`<p>番手：${esc(t.size)}</p>`:''}
+${t.line?`<p>ライン：${esc(t.line)}</p>`:''}
+<p>${esc(t.memo||'')}</p>
+<button class="sub" onclick="tackleForm(${i})">編集</button>
+<button class="sub" onclick="removeItem('tackle',${i})">削除</button>
+</div>`).join(''):'<p>まだ登録されていません。</p>'}`)
 }
-function addTackle(e){
+function tackleForm(i=-1){
+let t=read('tackle')[i]||{};
+show(back('tackle')+`
+<h2>${i<0?'タックル登録':'タックル編集'}</h2>
+<form class="panel" onsubmit="saveTackle(event,${i})">
+<label>種類<select id="category" onchange="specFields()">
+${options(['ロッド','リール','仕掛け','ライン','その他'],t.category||'ロッド')}
+</select></label>
+${field('メーカー','maker',t.maker)}
+${field('商品名・型番','name',t.name,'text','required')}
+<div id="specs"></div>
+<label>メモ<textarea id="memo">${esc(t.memo)}</textarea></label>
+<button class="primary">保存する</button>
+</form>`);
+specFields(t);
+}
+function specFields(t={}){
+let c=value('category');
+let el=document.getElementById('specs');
+if(c==='ロッド'){
+el.innerHTML=`
+${field('長さ（例：6.6ft）','length',t.length)}
+<label>硬さ<select id="power">${options(['未設定','UL','L','ML','M','MH','H','XH'],t.power||'未設定')}</select></label>
+${field('適合ルアー重量 最小(g)','min',t.min,'number','min="0" step="0.1"')}
+${field('適合ルアー重量 最大(g)','max',t.max,'number','min="0" step="0.1"')}`;
+}else if(c==='リール'){
+el.innerHTML=`
+<label>リールタイプ<select id="reelType">${options(['スピニング','ベイト','両軸','その他'],t.reelType||'スピニング')}</select></label>
+${field('番手（例：2000）','size',t.size)}
+${field('ラインの種類・太さ','line',t.line)}`;
+}else if(c==='ライン'){
+el.innerHTML=field('ラインの種類・太さ','line',t.line);
+}else{
+el.innerHTML='';
+}
+}
+function saveTackle(e,i){
 e.preventDefault();
+let min=value('min'),max=value('max');
+if(min!==''&&max!==''&&Number(min)>Number(max)){
+alert('最小重量は最大重量以下にしてください');
+return;
+}
+let t={};
+['category','maker','name','length','power','min','max','size','line','reelType','memo'].forEach(k=>t[k]=value(k));
 let data=read('tackle');
-data.push({category:document.getElementById('category').value,name:document.getElementById('name').value});
+if(i<0)data.push(t);
+else data[i]=t;
 if(write('tackle',data))tackle();
+}
+function catchFromPlan(i){
+let p=read('plans')[i];
+if(p)catchForm({fish:p.fish,location:p.location,date:p.date,method:p.method});
+}
+function catchForm(c={},i=-1){
+photoData=c.photo||'';
+photoLoading=false;
+show(back()+`
+<h2>📷 釣果記録</h2>
+<form class="panel" onsubmit="saveCatch(event,${i})">
+${field('釣行日','date',c.date||today(),'date','required')}
+${field('釣り場','location',c.location,'text','required')}
+${field('魚種','fish',c.fish,'text','required')}
+${field('釣り方','method',c.method)}
+${field('釣れた数（匹）','count',c.count??1,'number','min="0" step="1" required')}
+${field('最大サイズ（cm）','length',c.length,'number','min="0" step="0.1"')}
+${field('使用タックル','gear',c.gear)}
+<label>釣果写真<input type="file" accept="image/*" onchange="loadPhoto(event)"></label>
+<div id="preview">${photoData?`<img class="photo" src="${esc(photoData)}">`:''}</div>
+<button type="button" class="sub" onclick="clearPhoto()">写真を取り消す</button>
+<label>メモ<textarea id="memo">${esc(c.memo)}</textarea></label>
+<button class="primary">釣果を保存する</button>
+</form>`)
+}
+function clearPhoto(){
+photoData='';
+photoLoading=false;
+let el=document.getElementById('preview');
+if(el)el.innerHTML='';
+let input=app.querySelector('input[type=file]');
+if(input)input.value='';
+}
+let photoToken=0;
+function loadPhoto(e){
+let file=e.target.files[0];
+if(!file)return;
+let token=++photoToken;
+photoLoading=true;
+let reader=new FileReader();
+reader.onerror=()=>{
+if(token!==photoToken)return;
+photoLoading=false;
+alert('写真を読み込めませんでした');
+};
+reader.onload=()=>{
+if(token!==photoToken||!photoLoading)return;
+let img=new Image();
+img.onerror=()=>{
+if(token!==photoToken)return;
+photoLoading=false;
+alert('この画像形式は読み込めませんでした');
+};
+img.onload=()=>{
+if(token!==photoToken||!photoLoading)return;
+let canvas=document.createElement('canvas');
+let ratio=Math.min(1,800/Math.max(img.width,img.height));
+canvas.width=Math.max(1,Math.round(img.width*ratio));
+canvas.height=Math.max(1,Math.round(img.height*ratio));
+canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+photoData=canvas.toDataURL('image/jpeg',0.7);
+photoLoading=false;
+let el=document.getElementById('preview');
+if(el)el.innerHTML=`<img class="photo" src="${photoData}">`;
+};
+img.src=reader.result;
+};
+reader.readAsDataURL(file);
+}
+function saveCatch(e,i){
+e.preventDefault();
+if(photoLoading){
+alert('写真の読み込みが終わるまでお待ちください');
+return;
+}
+let c={photo:photoData};
+['date','location','fish','method','count','length','gear','memo'].forEach(k=>c[k]=value(k));
+let data=read('catches');
+if(i<0)data.push(c);
+else data[i]=c;
+if(write('catches',data))album();
+}
+function album(){
+let data=read('catches');
+let total=data.reduce((s,c)=>s+(Number(c.count)||0),0);
+show(back()+`
+<h2>🐟 釣果アルバム</h2>
+<div class="stats">
+<div class="stat">記録数<strong>${data.length}</strong></div>
+<div class="stat">合計釣果<strong>${total}匹</strong></div>
+</div><br>
+<button class="primary" onclick="catchForm()">＋ 釣果を記録する</button>
+${data.map((c,i)=>({c,i})).sort((a,b)=>String(b.c.date).localeCompare(String(a.c.date))).map(({c,i})=>`
+<div class="panel">
+${c.photo&&c.photo.startsWith('data:image/')?`<img class="photo" src="${esc(c.photo)}">`:''}
+<h3>${esc(c.fish)}　${esc(c.count)}匹</h3>
+<p>📅 ${esc(c.date)}</p>
+<p>📍 ${esc(c.location)}</p>
+${c.length?`<p>最大サイズ：${esc(c.length)}cm</p>`:''}
+<p>${esc(c.method)}</p>
+<p>${esc(c.gear)}</p>
+<p>${esc(c.memo)}</p>
+<button class="sub" onclick="editCatch(${i})">編集</button>
+<button class="sub" onclick="removeItem('catches',${i})">削除</button>
+</div>`).join('')}
+${!data.length?'<p>まだ釣果記録はありません。</p>':''}`)
+}
+function editCatch(i){
+let c=read('catches')[i];
+if(c)catchForm(c,i);
 }
 function removeItem(key,i){
 if(!confirm('削除しますか？'))return;
 let data=read(key);
 data.splice(i,1);
 if(write(key,data)){
-if(key==='plans')savedPlans();else tackle();
+if(key==='plans')savedPlans();
+else if(key==='tackle')tackle();
+else album();
 }
+}
+function settings(){
+show(back()+`
+<h2>設定</h2>
+<div class="panel">
+<h3>TACKLE NAVI</h3>
+<p>バージョン 0.3</p>
+<p>データ保存方式：端末ブラウザ内</p>
+<p>ブラウザのデータを消去すると、登録内容が失われる場合があります。</p>
+</div>
+<div class="panel">
+<h3>登録状況</h3>
+<p>タックル：${read('tackle').length}件</p>
+<p>釣行プラン：${read('plans').length}件</p>
+<p>釣果記録：${read('catches').length}件</p>
+</div>
+<button class="primary" onclick="backup()">データをバックアップ</button>`)
+}
+function backup(){
+let data={version:'0.3',tackle:read('tackle'),plans:read('plans'),catches:read('catches')};
+let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+let url=URL.createObjectURL(blob);
+let a=document.createElement('a');
+a.href=url;
+a.download='tackle-navi-backup-'+today()+'.json';
+a.click();
+setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function pending(name){
-show(back('home')+`<h2>${name}</h2><div class="panel">この機能は今後追加します。</div>`)
+show(back()+`<h2>${name}</h2><div class="panel">この機能は今後追加します。</div>`)
 }
 home();
 </script>
