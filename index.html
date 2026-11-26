@@ -2319,6 +2319,707 @@ setTimeout(
 
 /* Ver.0.6 追加コード終了 */
 
+/* ========================================
+   釣具なび Ver.0.7
+   潮汐情報・潮位グラフ
+======================================== */
+
+document.querySelector('footer').textContent=
+'釣具なび（TACKLE NAVI） | Ver. 0.7';
+
+const style07=document.createElement('style');
+
+style07.textContent=`
+.tidegrid07{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+}
+.tideitem07{
+background:#eaf4fc;
+padding:14px;
+border-radius:12px;
+}
+.tideitem07 strong{
+display:block;
+font-size:24px;
+margin:8px 0;
+}
+.tidetitle07{
+font-size:32px;
+font-weight:bold;
+color:#176b9b;
+}
+.tideinput07{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+}
+.tideinput07 input{
+min-width:0;
+}
+`;
+
+document.head.appendChild(style07);
+
+
+/* 釣行判断画面との連携 */
+
+const decisionDetail06=decisionDetail;
+
+decisionDetail=function(i){
+
+decisionDetail06(i);
+
+let p=read('plans')[i];
+
+if(!p||p.type!=='海釣り')return;
+
+let panel=document.createElement('div');
+
+panel.className='panel';
+
+panel.id='tidePanel07';
+
+let target=document.getElementById(
+'weatherResults06'
+);
+
+if(target){
+
+target.after(panel);
+
+renderTide07(i);
+
+}
+
+};
+
+
+/* 潮汐情報の表示 */
+
+function renderTide07(i){
+
+let p=read('plans')[i];
+
+let el=document.getElementById(
+'tidePanel07'
+);
+
+if(!p||!el)return;
+
+let tide=p.tide07||{};
+
+let events=Array.isArray(tide.events)?
+tide.events:[];
+
+let valid=tide.date===p.date;
+
+if(!valid)events=[];
+
+el.innerHTML=`
+
+<h3>🌊 潮汐情報</h3>
+
+<p>釣行日：${esc(p.date)}</p>
+
+<small>潮汐観測地点</small>
+
+<p>${valid?
+esc(tide.station||'未設定'):
+'未設定'}</p>
+
+<small>潮回り</small>
+
+<div class="tidetitle07">
+
+${valid?
+esc(tide.type||'未取得'):
+'未取得'}
+
+</div>
+
+<br>
+
+${events.length?`
+
+<div class="tidegrid07">
+
+${events.map(t=>`
+
+<div class="tideitem07">
+
+<small>${esc(t.type)}</small>
+
+<strong>${esc(t.time)}</strong>
+
+潮位 ${esc(t.height)}cm
+
+</div>
+
+`).join('')}
+
+</div>
+
+${tideGraph07(events)}
+
+<p><small>
+
+入力元：${esc(tide.source||'未設定')}
+
+</small></p>
+
+<p><small>
+
+登録日時：${esc(tide.updated||'')}
+
+</small></p>
+
+`:`
+
+<div class="weatherempty">
+
+潮汐情報が登録されていません。
+
+</div>
+
+`}
+
+<br>
+
+<button class="primary"
+onclick="tideForm07(${i})">
+
+潮汐情報を入力・更新
+
+</button>
+
+<button class="sub"
+onclick="openTide07()">
+
+気象庁の潮位表を確認
+
+</button>
+
+<div class="reason">
+
+潮汐情報は手動登録です。
+観測地点と釣行日を確認してください。
+
+潮位の基準は入力元の潮位表に従います。
+
+</div>
+
+`;
+
+}
+
+
+/* 気象庁の潮位表 */
+
+function openTide07(){
+
+window.open(
+
+'https://www.data.jma.go.jp/kaiyou/db/tide/suisan/',
+
+'_blank',
+
+'noopener,noreferrer'
+
+);
+
+}
+
+
+/* 潮汐情報入力画面 */
+
+function tideForm07(i){
+
+let p=read('plans')[i];
+
+if(!p)return fishingDecision();
+
+let t=p.tide07||{};
+
+if(t.date!==p.date)t={};
+
+let events=t.events||[];
+
+let types=[
+'満潮','干潮','満潮','干潮'
+];
+
+show(`
+
+<button class="back"
+onclick="decisionDetail(${i})">
+
+← 戻る
+
+</button>
+
+<h2>🌊 潮汐情報の登録</h2>
+
+<div class="panel">
+
+<p>釣り場：${esc(p.location)}</p>
+
+<p>釣行日：${esc(p.date)}</p>
+
+<button class="primary"
+onclick="openTide07()">
+
+気象庁の潮位表を開く
+
+</button>
+
+<small>
+
+釣り場に近い観測地点の
+潮位表を確認してください。
+
+</small>
+
+</div>
+
+<form class="panel"
+onsubmit="saveTide07(event,${i})">
+
+${field(
+'潮汐観測地点',
+'tideStation07',
+t.station||'',
+'text','required'
+)}
+
+<label>
+
+潮回り
+
+<select id="tideType07">
+
+${options(
+['未設定','大潮','中潮','小潮','長潮','若潮'],
+t.type||'未設定'
+)}
+
+</select>
+
+</label>
+
+${[0,1,2,3].map(j=>`
+
+<div class="panel"
+style="background:#eaf4fc">
+
+<label>
+
+満潮・干潮
+
+<select id="tideKind07_${j}">
+
+${options(
+['満潮','干潮'],
+events[j]?.type||types[j]
+)}
+
+</select>
+
+</label>
+
+<div class="tideinput07">
+
+${field(
+'時刻',
+'tideTime07_'+j,
+events[j]?.time||'',
+'time'
+)}
+
+${field(
+'潮位(cm)',
+'tideHeight07_'+j,
+events[j]?.height??'',
+'number','step="0.1"'
+)}
+
+</div>
+
+</div>
+
+`).join('')}
+
+${field(
+'データの出典',
+'tideSource07',
+t.source||'気象庁 潮位表',
+'text','required'
+)}
+
+<p><small>
+
+満潮・干潮が少ない日は
+不要な入力欄を空欄にしてください。
+
+潮位がマイナスの場合も
+そのまま入力できます。
+
+</small></p>
+
+<button class="primary">
+
+潮汐情報を保存する
+
+</button>
+
+</form>
+
+`);
+
+}
+
+
+/* 潮汐情報保存 */
+
+function saveTide07(e,i){
+
+e.preventDefault();
+
+let plans=read('plans');
+
+let p=plans[i];
+
+if(!p)return fishingDecision();
+
+let events=[];
+
+for(let j=0;j<4;j++){
+
+let type=value('tideKind07_'+j);
+
+let time=value('tideTime07_'+j);
+
+let height=value('tideHeight07_'+j);
+
+if(!time&&height==='')continue;
+
+if(!time||height===''||
+!Number.isFinite(Number(height))){
+
+alert(
+'時刻と潮位を両方入力してください。'
+);
+
+return;
+
+}
+
+if(events.some(t=>t.time===time)){
+
+alert('同じ時刻が重複しています。');
+
+return;
+
+}
+
+events.push({
+
+type:type,
+
+time:time,
+
+height:Number(height)
+
+});
+
+}
+
+if(!events.length){
+
+alert('潮汐情報を入力してください。');
+
+return;
+
+}
+
+events.sort(
+(a,b)=>a.time.localeCompare(b.time)
+);
+
+p.tide07={
+
+date:p.date,
+
+station:value('tideStation07'),
+
+type:value('tideType07'),
+
+source:value('tideSource07'),
+
+events:events,
+
+updated:new Date().toLocaleString(
+'ja-JP'
+)
+
+};
+
+if(write('plans',plans)){
+
+decisionDetail(i);
+
+}
+
+}
+
+
+/* 潮汐グラフ */
+
+function tideGraph07(events){
+
+if(!events.length)return '';
+
+let heights=events.map(
+t=>Number(t.height)
+);
+
+let min=Math.min(0,...heights);
+
+let max=Math.max(1,...heights);
+
+let range=max-min;
+
+let points=events.map(t=>{
+
+let parts=t.time.split(':');
+
+let minutes=
+Number(parts[0])*60+
+Number(parts[1]);
+
+return {
+
+x:38+minutes/1440*280,
+
+y:145-(t.height-min)/range*110,
+
+height:t.height,
+
+type:t.type,
+
+time:t.time
+
+};
+
+});
+
+let path=points.map(
+(p,j)=>(j===0?'M':'L')+
+p.x+' '+p.y
+).join(' ');
+
+return `
+
+<br>
+
+<h3>潮汐グラフ</h3>
+
+<svg viewBox="0 0 340 185"
+style="width:100%;height:auto">
+
+${[0,.25,.5,.75,1].map(v=>`
+
+<line
+x1="38"
+y1="${145-v*110}"
+x2="318"
+y2="${145-v*110}"
+stroke="#d6e5ef"/>
+
+<text
+x="31"
+y="${149-v*110}"
+font-size="10"
+text-anchor="end"
+fill="#52748c">
+
+${(min+range*v).toFixed(0)}
+
+</text>
+
+`).join('')}
+
+<path d="${path}"
+fill="none"
+stroke="#176b9b"
+stroke-width="2.5"
+stroke-dasharray="5 4"/>
+
+${points.map(p=>`
+
+<circle
+cx="${p.x}"
+cy="${p.y}"
+r="4"
+fill="#176b9b"/>
+
+<text
+x="${Math.max(25,Math.min(315,p.x))}"
+y="${p.y-10}"
+font-size="10"
+text-anchor="middle"
+fill="#123e60">
+
+${esc(p.height)}cm
+
+</text>
+
+`).join('')}
+
+${[0,6,12,18,24].map(h=>`
+
+<text
+x="${38+h/24*280}"
+y="168"
+font-size="10"
+text-anchor="middle"
+fill="#52748c">
+
+${h}時
+
+</text>
+
+`).join('')}
+
+</svg>
+
+<small>
+
+登録した満潮・干潮の潮位を
+点線で結んだ参考グラフです。
+
+途中の時刻の正確な潮位を
+示すものではありません。
+
+</small>
+
+`;
+
+}
+
+
+/* 釣行プランから直接アクセス */
+
+const savedPlans06=savedPlans;
+
+savedPlans=function(){
+
+savedPlans06();
+
+let plans=read('plans');
+
+let cards=app.querySelectorAll('.panel');
+
+cards.forEach(card=>{
+
+let oldButton=card.querySelector(
+'button[onclick^="editPlan("]'
+);
+
+if(!oldButton)return;
+
+let match=oldButton.getAttribute(
+'onclick'
+).match(/editPlan\((\d+)\)/);
+
+if(!match)return;
+
+let i=Number(match[1]);
+
+if(plans[i]?.type!=='海釣り')return;
+
+let button=document.createElement(
+'button'
+);
+
+button.className='sub';
+
+button.textContent='🌊 潮汐・気象情報';
+
+button.onclick=()=>decisionDetail(i);
+
+card.appendChild(button);
+
+});
+
+};
+
+
+/* 設定画面更新 */
+
+const settings06=settings;
+
+settings=function(){
+
+settings06();
+
+app.querySelectorAll('p').forEach(el=>{
+
+if(/^バージョン\s/.test(el.textContent)){
+
+el.textContent='バージョン 0.7';
+
+}
+
+});
+
+};
+
+
+/* バックアップ更新 */
+
+backup=function(){
+
+let data={
+
+version:'0.7',
+
+tackle:read('tackle'),
+
+plans:read('plans'),
+
+catches:read('catches')
+
+};
+
+let blob=new Blob(
+
+[JSON.stringify(data,null,2)],
+
+{type:'application/json'}
+
+);
+
+let url=URL.createObjectURL(blob);
+
+let a=document.createElement('a');
+
+a.href=url;
+
+a.download=
+'tackle-navi-backup-'+today()+'.json';
+
+a.click();
+
+setTimeout(
+()=>URL.revokeObjectURL(url),1000
+);
+
+};
+
+/* Ver.0.7 追加コード終了 */
+
 home();
 </script>
 </body>
