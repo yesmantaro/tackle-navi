@@ -1045,6 +1045,379 @@ setTimeout(()=>URL.revokeObjectURL(url),1000);
 
 /* Ver.0.4 追加コード終了 */
 
+/* ========================================
+   釣具なび Ver.0.5
+   タイトル変更・釣行判断機能
+======================================== */
+
+document.title='釣具なび（TACKLE NAVI）';
+
+document.querySelector('header').innerHTML=`
+<div style="font-size:26px">🎣 釣具なび</div>
+<div style="font-size:14px;letter-spacing:2px;margin-top:5px">
+TACKLE NAVI
+</div>
+`;
+
+document.querySelector('footer').textContent=
+'釣具なび（TACKLE NAVI） | Ver. 0.5';
+
+const style05=document.createElement('style');
+
+style05.textContent=`
+.weathergrid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+}
+.weatheritem{
+background:#eaf4fc;
+padding:16px;
+border-radius:12px;
+}
+.weatheritem strong{
+display:block;
+font-size:20px;
+margin-top:8px;
+}
+.weatherempty{
+background:#f4f7fa;
+border:1px dashed #b8ccd9;
+border-radius:12px;
+padding:30px 15px;
+text-align:center;
+color:#52748c;
+}
+.notice05{
+background:#fff6df;
+color:#795510;
+padding:14px;
+border-radius:10px;
+font-size:14px;
+line-height:1.8;
+}
+`;
+
+document.head.appendChild(style05);
+
+
+/* ホーム画面への機能追加 */
+
+const home04=home;
+
+home=function(){
+
+home04();
+
+let menu=app.querySelector('.menu');
+
+if(menu){
+
+let btn=document.createElement('button');
+
+btn.className='tile';
+
+btn.innerHTML=`
+<span>🌤️</span>
+釣行判断
+`;
+
+btn.onclick=()=>fishingDecision();
+
+menu.prepend(btn);
+
+}
+
+};
+
+
+/* 釣行プラン選択 */
+
+function fishingDecision(){
+
+let plans=read('plans');
+
+show(back()+`
+
+<h2>🌤️ 釣行判断</h2>
+
+<p>釣行プランを選択してください。</p>
+
+${plans.length?
+
+plans.map((p,i)=>`
+
+<div class="panel">
+
+<h3>${esc(p.fish)}</h3>
+
+<p>📅 ${esc(p.date)}</p>
+
+<p>📍 ${esc(p.location)}</p>
+
+<p>${esc(p.method)} / ${esc(p.place)}</p>
+
+<button class="primary"
+onclick="decisionDetail(${i})">
+
+釣行コンディションを確認
+
+</button>
+
+</div>
+
+`).join('')
+
+:
+
+`<div class="panel">
+
+<p>保存された釣行プランがありません。</p>
+
+<button class="primary" onclick="start()">
+
+釣行プランを作成する
+
+</button>
+
+</div>`}
+
+`);
+
+}
+
+
+/* 釣行判断詳細画面 */
+
+function decisionDetail(i){
+
+let p=read('plans')[i];
+
+if(!p)return fishingDecision();
+
+let items=[
+['🌤️','天気'],
+['🌡️','気温'],
+['🌊','水温'],
+['💨','風速'],
+['🌊','波高'],
+['🧭','風向'],
+['☔','降水確率'],
+['🌙','潮回り']
+];
+
+show(back('fishingDecision')+`
+
+<h2>釣行判断</h2>
+
+<div class="panel">
+
+<h3>📍 ${esc(p.location)}</h3>
+
+<p>📅 ${esc(p.date)}</p>
+
+<p>対象魚：${esc(p.fish)}</p>
+
+<p>釣り方：${esc(p.method)}</p>
+
+<p>釣り場：${esc(p.place)}</p>
+
+</div>
+
+<div class="panel">
+
+<h3>釣行コンディション</h3>
+
+<div class="weathergrid">
+
+${items.map(x=>`
+
+<div class="weatheritem">
+
+<small>${x[0]} ${x[1]}</small>
+
+<strong>未取得</strong>
+
+</div>
+
+`).join('')}
+
+</div>
+
+</div>
+
+${p.type==='海釣り'?`
+
+<div class="panel">
+
+<h3>🌊 潮汐グラフ</h3>
+
+<div class="weatherempty">
+
+潮汐データ未取得
+
+</div>
+
+<p>満潮：未取得</p>
+
+<p>干潮：未取得</p>
+
+</div>
+
+`:''}
+
+<div class="panel">
+
+<h3>釣行アドバイス</h3>
+
+<div class="reason">
+
+${decisionAdvice(p)}
+
+</div>
+
+</div>
+
+<div class="panel">
+
+<h3>⚠️ 安全確認</h3>
+
+<div class="notice05">
+
+現在、気象・潮汐データとは
+連携していません。
+
+<br><br>
+
+釣行の可否は判定できません。
+必ず最新の気象情報や現地の状況を
+確認してください。
+
+</div>
+
+<br>
+
+<button class="primary"
+onclick="window.open(
+'https://www.jma.go.jp/bosai/',
+'_blank','noopener,noreferrer')">
+
+気象庁の情報を確認する
+
+</button>
+
+</div>
+
+<button class="primary"
+onclick="savedPlans()">
+
+マイ釣行プランに戻る
+
+</button>
+
+`);
+
+}
+
+
+/* 釣り方別アドバイス */
+
+function decisionAdvice(p){
+
+let advice={
+
+'アジング':
+'風が強いと軽量ジグヘッドの操作が難しくなります。朝夕の時間帯も候補にしましょう。',
+
+'サビキ釣り':
+'魚の回遊状況や潮の動きを確認しましょう。',
+
+'エギング':
+'風向きや潮の流れを確認し、エギの操作性を考慮しましょう。',
+
+'ショアジギング':
+'波や風の状況に注意し、使用するジグの重量も確認しましょう。',
+
+'メバリング':
+'夜間の釣行では足元の安全と照明を確認しましょう。',
+
+'投げ釣り':
+'波や風向きに注意し、周囲に人がいないことを確認しましょう。',
+
+'フカセ釣り':
+'潮の流れや風向き、足場の安全を確認しましょう。',
+
+'友釣り':
+'河川の水位や上流の降雨、増水情報を確認しましょう。'
+
+};
+
+return advice[p.method]||
+'天候や釣り場の状況を確認し、安全を優先して釣行を計画しましょう。';
+
+}
+
+
+/* 設定画面のバージョン更新 */
+
+const settings04=settings;
+
+settings=function(){
+
+settings04();
+
+app.querySelectorAll('h3,p').forEach(el=>{
+
+if(el.textContent.trim()==='TACKLE NAVI'){
+
+el.textContent='釣具なび（TACKLE NAVI）';
+
+}
+
+if(/^バージョン\s/.test(el.textContent)){
+
+el.textContent='バージョン 0.5';
+
+}
+
+});
+
+};
+
+
+/* バックアップのバージョン更新 */
+
+backup=function(){
+
+let data={
+version:'0.5',
+tackle:read('tackle'),
+plans:read('plans'),
+catches:read('catches')
+};
+
+let blob=new Blob(
+[JSON.stringify(data,null,2)],
+{type:'application/json'}
+);
+
+let url=URL.createObjectURL(blob);
+
+let a=document.createElement('a');
+
+a.href=url;
+
+a.download=
+'tackle-navi-backup-'+today()+'.json';
+
+a.click();
+
+setTimeout(()=>URL.revokeObjectURL(url),1000);
+
+};
+
+/* Ver.0.5 追加コード終了 */
+
 home();
 </script>
 </body>
