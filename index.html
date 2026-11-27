@@ -3178,8 +3178,8 @@ return `<div class="panel" id="diagnosis13"><h3>🎣 総合適合診断</h3><p>$
 
 const recBase13=recommendScreen;recommendScreen=function(){recBase13();let h=[...app.querySelectorAll('h3')].find(x=>x.textContent==='マイタックルとの照合');if(h){let old=h.nextElementSibling;while(old&&old.classList.contains('panel')){let next=old.nextElementSibling;old.remove();old=next;}h.insertAdjacentHTML('afterend',diagnosis13(planData));h.remove();}};
 const settingsBase13=settings;settings=function(){settingsBase13();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 1.3';});};
-backup=function(){let blob=new Blob([JSON.stringify({version:'1.8',tackle:read('tackle'),plans:read('plans'),catches:read('catches')},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='tackle-navi-backup-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
-document.querySelector('footer').textContent='釣具なび（TACKLE NAVI） | Ver. 1.8';
+backup=function(){let blob=new Blob([JSON.stringify({version:'1.9',tackle:read('tackle'),plans:read('plans'),catches:read('catches')},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='tackle-navi-backup-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+document.querySelector('footer').textContent='釣具なび（TACKLE NAVI） | Ver. 1.9';
 
 /* Ver.1.4 common selection controls */
 const makers14='シマノ,ダイワ,メジャークラフト,アブガルシア,ヤマガブランクス,がまかつ,ジャッカル,テイルウォーク,オリムピック,天龍,宇崎日新,デュエル,サンライン,バリバス,よつあみ,東レ,クレハ,ゴーセン,オーナー,ハヤブサ,メガバス,ブルーブルー,アイマ,デプス,エバーグリーン,ラパラ'.split(',');
@@ -3194,7 +3194,7 @@ const save14=saveTackle;saveTackle=function(e,i){let keys=['rodType14','gear14',
 const spool14=spoolForm10;spoolForm10=function(...a){spool14(...a);pick14('smaker10',makers14);pick14('skind10',kinds10);pick14('sleaderKind10',['フロロ','ナイロン','PE','エステル']);pick14('slb10',['1','2','3','4','5','6','8','10','12','14','16','18','20','22','25','30','35','40','50','60','80','100','120'],'lb');pick14('sm10',['25','50','75','100','120','150','200','250','300','400','500','600','1000'],'m');pick14('sleaderLength10',['0.3','0.5','0.8','1','1.2','1.5','2','2.5','3','4','5','10'],'m');};
 const catch14=catchForm;catchForm=function(c={},i=-1){catch14(c,i);pick14('fish',Object.keys(db));pick14('method',Object.keys(methods));pick14('count',Array.from({length:51},(_,i)=>String(i)),'匹');pick14('length',Array.from({length:150},(_,i)=>String(i+1)),'cm');let el=document.getElementById('location');el.insertAdjacentHTML('afterend',extra14('釣り場の種類','catchPlace14',c.place14));pick14('catchPlace14',['堤防','漁港','砂浜','磯','船','河口','河川','湖','池','管理釣り場']);};
 const saveCatch14=saveCatch;saveCatch=function(e,i){let place=value('catchPlace14'),w=write;write=function(k,a){if(k==='catches')a[i<0?a.length-1:i].place14=place;return w(k,a);};try{return saveCatch14(e,i);}finally{write=w;}};
-const settings14=settings;settings=function(){settings14();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 1.8';});};
+const settings14=settings;settings=function(){settings14();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 1.9';});};
 
 
 
@@ -3229,6 +3229,26 @@ function fishGroup18(group){let items=Object.keys(db).filter(f=>groups18[f]===gr
 fishScreen=function(){let items=Object.keys(db).filter(f=>planData.type==='海釣り'?!freshwater.includes(f):freshwater.includes(f));let groups=[...new Set(items.map(f=>groups18[f]))];show(back('water')+step(1)+'<h2>魚の分類を選択</h2><p>'+items.length+'魚種・魚名から選べます</p>'+choices(groups,'fishGroup18','🐟'));};
 // Remove only individual lure/rig inventory, never catches or plans.
 let inventory18=read('tackle');let kept18=inventory18.filter(t=>!['仕掛け','ルアー','ルアー・仕掛け'].includes(t.category));if(kept18.length!==inventory18.length)write('tackle',kept18);
+
+/* Ver.1.9 location-first guide */
+const spots19={
+'堤防':['足元から沖まで狙える。水深や障害物を確認。','アジ:5-11,サバ:5-10,シーバス:3-11,カサゴ:1-12,クロダイ:4-11,タチウオ:7-11,ブリ:6-11'],
+'漁港':['比較的穏やかな場所もあるが、作業区域・立入禁止区域に注意。','アジ:5-11,メバル:11-5,カサゴ:1-12,カマス:7-11,アオリイカ:4-6,アオリイカ:9-11,ハゼ:6-10'],
+'砂浜':['遠投や波打ち際の地形が重要。離岸流・高波に注意。','キス:5-10,ヒラメ:4-6,ヒラメ:10-12,マゴチ:5-9,イシモチ:5-10,シーバス:4-11'],
+'磯':['根や潮通しを狙う。波・足場・退路の確認が必須。','メジナ:11-5,クロダイ:4-11,ヒラスズキ:3-6,ヒラマサ:4-11,アカハタ:6-10,カサゴ:1-12'],
+'船':['水深や潮流に合わせる。船宿指定の道具・仕掛けを優先。','マダイ:3-6,マダイ:9-11,アジ:1-12,タチウオ:7-12,ブリ:6-12,アマダイ:9-3,マハタ:4-11'],
+'河川':['流速・増水・障害物を確認。遊漁券や禁漁期間に注意。','アユ:6-9,ヤマメ:3-9,イワナ:3-9,オイカワ:5-10,ナマズ:5-10,コイ:4-10'],
+'湖':['岸の地形・水深・風を確認。地域の釣り規則に従う。','ブラックバス:4-10,スモールマウスバス:4-10,コイ:4-10,ニジマス:3-6,ニジマス:9-11,フナ:4-10'],
+'池':['足場と釣り許可を確認。私有地には無断で入らない。','フナ:4-10,コイ:4-10,ブラックバス:4-10,タナゴ:4-10'],
+'管理釣り場':['施設ごとの営業日・使用可能な針やルアーを確認。','ニジマス:1-12,トラウト:1-12,ブラウントラウト:1-12,ヘラブナ:1-12']};
+const legacyPlaces19={'サビキ釣り':['堤防','漁港'],'アジング':['堤防','漁港'],'ウキ釣り':['堤防','漁港','磯','河川','湖','池'],'ショアジギング':['堤防','磯','砂浜'],'ルアー釣り':['堤防','漁港','砂浜','磯','河川','湖','池','管理釣り場'],'泳がせ釣り':['堤防','漁港','船'],'フカセ釣り':['堤防','漁港','磯'],'チニング':['堤防','漁港'],'メバリング':['堤防','漁港','磯'],'エギング':['堤防','漁港','磯'],'投げ釣り':['堤防','漁港','砂浜'],'穴釣り':['堤防','漁港','磯'],'タイラバ':['船'],'エサ釣り':['河川','湖','池','管理釣り場'],'友釣り':['河川'],'吸い込み釣り':['河川','湖','池']};
+let spot19='',month19=new Date().getMonth()+1;
+function spotMenu19(){show(back('water')+'<h2>釣り場から探す</h2>'+choices(Object.keys(spots19),'spotOpen19','📍'));}
+function methodsAt19(f,s){return (db[f]||[]).filter(m=>(catalog18[f+'|'+m]?.places||legacyPlaces19[m]||[]).includes(s));}
+function spotOpen19(s){spot19=s;spotResults19();}
+function spotResults19(){let s=spot19,info=spots19[s],season={};for(let x of info[1].split(',')){let [f,r]=x.split(':'),[a,b]=r.split('-').map(Number);(season[f]??=[]).push([a,b]);}let names=Object.keys(season).filter(f=>methodsAt19(f,s).length);let inMonth=f=>season[f].some(([a,b])=>a<=b?month19>=a&&month19<=b:month19>=a||month19<=b);names.sort((a,b)=>Number(inMonth(b))-Number(inMonth(a)));show(back('spotMenu19')+'<h2>'+esc(s)+'</h2><div class="panel">'+esc(info[0])+'</div><label>釣行予定月<select onchange="month19=Number(this.value);spotResults19()">'+Array.from({length:12},(_,i)=>`<option value="${i+1}" ${month19===i+1?'selected':''}>${i+1}月</option>`).join('')+'</select></label><p>代表的な対象魚・時期の目安（日本の一般例。地域差あり）</p>'+names.map(f=>`<div class="panel"><b>${esc(f)}</b><p>${inMonth(f)?'● 時期の目安内':'時期の目安外'} ／ ${season[f].map(([a,b])=>a+'〜'+b+'月').join('・')}</p>${choices(methodsAt19(f,s),'spotMethod19_'+Object.keys(db).indexOf(f),'🎣')}</div>`).join('')+'<small>実際の釣果・釣り許可・安全を保証する情報ではありません。</small>');}
+Object.keys(db).forEach((f,i)=>{window['spotMethod19_'+i]=m=>{planData={type:freshwater.includes(f)?'川・湖釣り':'海釣り',fish:f,method:m,place:spot19};recommendScreen();let b=app.querySelector('.back');if(b)b.onclick=spotResults19;};});
+const water19=water;water=function(){water19();app.insertAdjacentHTML('beforeend','<button class="primary" onclick="spotMenu19()">📍 釣り場から探す</button>');};
 
 home();
 </script>
