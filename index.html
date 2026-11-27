@@ -88,11 +88,19 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .plan-cta-hint27{display:block;font-size:12px;font-weight:600;opacity:.85;letter-spacing:.01em}
 .plan-cta27:active{transform:translateY(2px);box-shadow:0 3px 0 #d99a2b,0 6px 12px #075b9922}
 </style>
+<style id="tackle-design28">
+.tackle-tools28 label{font-weight:700;font-size:14px}
+.tackle-tools28 input[type=search]{margin:8px 0 12px}
+.tackle-filters28{display:flex;flex-wrap:wrap;gap:8px}
+.tackle-chip28{border:1px solid #c6dbe9;border-radius:999px;padding:9px 13px;background:white;color:#075b99;font-weight:700;font-size:13px;min-height:40px}
+.tackle-chip28.active{background:#075b99;color:white;border-color:#075b99}
+.tackle-count28{font-size:13px;color:#57748a;margin:12px 0 0}
+</style>
 </head>
 <body>
 <header role="button" tabindex="0" aria-label="トップ画面へ戻る" onclick="home()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();home()}">🎣 TACKLE NAVI</header>
 <main id="app"></main>
-<footer>TACKLE NAVI | Ver. 2.5</footer>
+<footer>TACKLE NAVI | Ver. 2.8</footer>
 <script>
 const app=document.getElementById('app');
 let planData={};
@@ -360,44 +368,86 @@ if(!data[i])return savedPlans();
 data[i]={...data[i],date:value('date'),location:value('location'),memo:value('memo')};
 if(write('plans',data))savedPlans();
 }
+/* Ver.2.8: 検索・カテゴリー絞り込み・複製登録 */
+let tackleFilter28='すべて';
+let tackleQuery28='';
 function tackle(){
-let data=read('tackle');
-// 表示順だけ変更。元の配列インデックスを保持して編集・削除を安全に行う。
-const categoryOrder={'ロッド':0,'リール':1,'ライン':2,'その他':3};
-const sortedTackle=data.map((t,i)=>({t,i})).filter(({t})=>t.category!=='仕掛け')
-  .sort((a,b)=>(categoryOrder[a.t.category]??3)-(categoryOrder[b.t.category]??3)||a.i-b.i);
-show(back()+`
-<h2>マイタックル</h2>
-<p><small>表示順：ロッド → リール → ライン → その他</small></p>
-<button class="primary" onclick="tackleForm()">＋ タックルを登録</button>
-${sortedTackle.length?sortedTackle.map(({t,i})=>`<div class="panel">
-<small>${esc(t.category)}</small>
-<h3>${esc(t.maker||'')} ${esc(t.name)}</h3>
-${t.length?`<p>長さ：${esc(t.length)}</p>`:''}
-${t.power?`<p>硬さ：${esc(t.power)}</p>`:''}
-${t.min!=null&&t.min!==''&&t.max!=null&&t.max!==''?`<p>適合重量：${esc(t.min)}〜${esc(t.max)}g</p>`:''}
-${t.size?`<p>番手：${esc(t.size)}</p>`:''}
-${t.line?`<p>ライン：${esc(t.line)}</p>`:''}
-<p>${esc(t.memo||'')}</p>
-<button class="sub" onclick="tackleForm(${i})">編集</button>
-<button class="sub" onclick="removeItem('tackle',${i})">削除</button>
-</div>`).join(''):'<p>まだ登録されていません。</p>'}`)
+  const data=read('tackle');
+  const categoryOrder={'ロッド':0,'リール':1,'ライン':2,'その他':3};
+  const sorted=data.map((t,i)=>({t,i})).filter(({t})=>t.category!=='仕掛け')
+    .sort((a,b)=>(categoryOrder[a.t.category]??3)-(categoryOrder[b.t.category]??3)||a.i-b.i);
+  show(back()+`
+    <h2>マイタックル</h2>
+    <p><small>表示順：ロッド → リール → ライン → その他</small></p>
+    <button class="primary" onclick="tackleForm()">＋ タックルを登録</button>
+    <section class="panel tackle-tools28" aria-label="マイタックルの検索と絞り込み">
+      <label for="tackleSearch28">メーカー名・商品名で検索</label>
+      <input id="tackleSearch28" type="search" placeholder="例：シーバス、4000番、メーカー名" autocomplete="off" value="${esc(tackleQuery28)}" oninput="tackleQuery28=this.value;renderTackle28()">
+      <div class="tackle-filters28" role="group" aria-label="種類で絞り込み">
+        ${['すべて','ロッド','リール','ライン','その他'].map(c=>`<button type="button" class="tackle-chip28 ${tackleFilter28===c?'active':''}" data-category="${c}" aria-pressed="${tackleFilter28===c}" onclick="setTackleFilter28(this.dataset.category)">${c}</button>`).join('')}
+      </div>
+      <p id="tackleCount28" class="tackle-count28" aria-live="polite"></p>
+    </section>
+    <div id="tackleResults28"></div>`);
+  renderTackle28(sorted);
 }
-function tackleForm(i=-1){
-let t=read('tackle')[i]||{};
-show(back('tackle')+`
-<h2>${i<0?'タックル登録':'タックル編集'}</h2>
-<form class="panel" onsubmit="saveTackle(event,${i})">
-<label>種類<select id="category" onchange="specFields()">
-${options(['ロッド','リール','ライン','その他'],t.category||'ロッド')}
-</select></label>
-${field('メーカー','maker',t.maker)}
-${field('商品名・型番','name',t.name,'text','required')}
-<div id="specs"></div>
-<label>メモ<textarea id="memo">${esc(t.memo)}</textarea></label>
-<button class="primary">保存する</button>
-</form>`);
-specFields(t);
+function setTackleFilter28(category){
+  tackleFilter28=category;
+  document.querySelectorAll('.tackle-chip28').forEach(b=>{
+    const active=b.dataset.category===category;
+    b.classList.toggle('active',active);
+    b.setAttribute('aria-pressed',String(active));
+  });
+  renderTackle28();
+}
+function renderTackle28(preSorted){
+  const results=document.getElementById('tackleResults28');
+  if(!results)return;
+  const order={'ロッド':0,'リール':1,'ライン':2,'その他':3};
+  const all=preSorted||read('tackle').map((t,i)=>({t,i})).filter(({t})=>t.category!=='仕掛け')
+    .sort((a,b)=>(order[a.t.category]??3)-(order[b.t.category]??3)||a.i-b.i);
+  const q=tackleQuery28.trim().toLocaleLowerCase();
+  const filtered=all.filter(({t})=>(tackleFilter28==='すべて'||(t.category||'その他')===tackleFilter28)
+    &&(!q||[t.maker,t.name].some(v=>String(v??'').toLocaleLowerCase().includes(q))));
+  const count=document.getElementById('tackleCount28');
+  if(count)count.textContent=`${filtered.length}件表示 / 全${all.length}件`;
+  results.innerHTML=filtered.length?filtered.map(({t,i})=>`<div class="panel">
+    <small>${esc(t.category||'その他')}</small>
+    <h3>${esc(t.maker||'')} ${esc(t.name)}</h3>
+    ${t.length?`<p>長さ：${esc(t.length)}</p>`:''}
+    ${t.power?`<p>硬さ：${esc(t.power)}</p>`:''}
+    ${t.min!=null&&t.min!==''&&t.max!=null&&t.max!==''?`<p>適合重量：${esc(t.min)}〜${esc(t.max)}g</p>`:''}
+    ${t.size?`<p>番手：${esc(t.size)}</p>`:''}
+    ${t.line?`<p>ライン：${esc(t.line)}</p>`:''}
+    <p>${esc(t.memo||'')}</p>
+    <button class="sub" onclick="tackleForm(${i})">編集</button>
+    <button class="sub" onclick="duplicateTackle28(${i})">複製</button>
+    <button class="sub" onclick="removeItem('tackle',${i})">削除</button>
+  </div>`).join(''):`<div class="panel"><p>${all.length?'該当するタックルがありません。':'まだ登録されていません。'}</p>${all.length?'<button class="sub" onclick="clearTackleFilters28()">検索・絞り込みを解除</button>':''}</div>`;
+}
+function clearTackleFilters28(){tackleFilter28='すべて';tackleQuery28='';tackle();}
+function duplicateTackle28(i){
+  const original=read('tackle')[i];
+  if(!original){alert('複製元のタックルが見つかりません。');tackle();return;}
+  // 保存は行わず、登録フォームへコピー。保存した場合だけ新しい1件として追加する。
+  tackleForm(-1,{...original},true);
+}
+function tackleForm(i=-1,copy=null,isDuplicate=false){
+  const t=copy||read('tackle')[i]||{};
+  show(back('tackle')+`
+    <h2>${isDuplicate?'タックルを複製':i<0?'タックル登録':'タックル編集'}</h2>
+    ${isDuplicate?'<p class="panel">元の登録内容をコピーしました。必要な箇所を変更して「新規登録する」を押してください。元のタックルは変更されません。</p>':''}
+    <form class="panel" onsubmit="saveTackle(event,${i})">
+      <label>種類<select id="category" onchange="specFields()">
+      ${options(['ロッド','リール','ライン','その他'],t.category||'ロッド')}
+      </select></label>
+      ${field('メーカー','maker',t.maker)}
+      ${field('商品名・型番','name',t.name,'text','required')}
+      <div id="specs"></div>
+      <label>メモ<textarea id="memo">${esc(t.memo)}</textarea></label>
+      <button class="primary">${isDuplicate?'新規登録する':'保存する'}</button>
+    </form>`);
+  specFields(t);
 }
 function specFields(t={}){
 let c=value('category');
@@ -3377,7 +3427,7 @@ settings=function(){
     <button class="sub" type="button" onclick="restoreBackup25()">ファイルを確認して復元</button>`;
   app.appendChild(panel);
   app.querySelectorAll('p').forEach(el=>{
-    if(/^バージョン\s/.test(el.textContent.trim()))el.textContent='バージョン 2.7';
+    if(/^バージョン\s/.test(el.textContent.trim()))el.textContent='バージョン 2.8';
   });
 };
 async function restoreBackup25(){
