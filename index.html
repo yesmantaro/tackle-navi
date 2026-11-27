@@ -42,7 +42,7 @@ small{color:#52748c}
 .diag15card summary::-webkit-details-marker{display:none}.diag15card summary:after{content:'詳細を見る ▾';font-size:11px;color:#52748c;margin-top:auto}.diag15card[open] summary:after{content:'閉じる ▴'}
 .diag15card .detail15{padding:0 12px 10px;border-top:1px solid #e2edf4;font-size:13px}.diag15card .detail15 p{margin:10px 0}.diag15status{font-weight:bold;font-size:16px}.diag15counts{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;gap:4px;background:#eef5fa;padding:10px;border-radius:10px;font-size:12px}.diag15counts strong{display:block;font-size:24px}.diag15bar{display:flex;height:7px;border-radius:8px;overflow:hidden;margin-top:8px}.diag15bar span{display:block}.diag15name{font-weight:bold;font-size:15px}
 </style>
-</head>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><style>#map17{height:300px;width:100%;border-radius:10px;z-index:0}#map17 .leaflet-control button{width:auto}</style></head>
 <body>
 <header onclick="home()">🎣 TACKLE NAVI</header>
 <main id="app"></main>
@@ -145,7 +145,7 @@ show(`
 <p>釣りの計画から釣果の記録まで。</p>
 </div>
 <div class="stats">
-<div class="stat">登録タックル<strong>${read('tackle').length}</strong></div>
+<div class="stat">登録タックル<strong>${read('tackle').filter(t=>t.category!=='仕掛け').length}</strong></div>
 <div class="stat">釣行プラン<strong>${read('plans').length}</strong></div>
 </div><br>
 <button class="primary" onclick="start()">🎣 釣りを計画する</button>
@@ -319,7 +319,7 @@ let data=read('tackle');
 show(back()+`
 <h2>マイタックル</h2>
 <button class="primary" onclick="tackleForm()">＋ タックルを登録</button>
-${data.length?data.map((t,i)=>`<div class="panel">
+${data.some(t=>t.category!=='仕掛け')?data.map((t,i)=>t.category==='仕掛け'?'':`<div class="panel">
 <small>${esc(t.category)}</small>
 <h3>${esc(t.maker||'')} ${esc(t.name)}</h3>
 ${t.length?`<p>長さ：${esc(t.length)}</p>`:''}
@@ -338,7 +338,7 @@ show(back('tackle')+`
 <h2>${i<0?'タックル登録':'タックル編集'}</h2>
 <form class="panel" onsubmit="saveTackle(event,${i})">
 <label>種類<select id="category" onchange="specFields()">
-${options(['ロッド','リール','仕掛け','ライン','その他'],t.category||'ロッド')}
+${options(['ロッド','リール','ライン','その他'],t.category||'ロッド')}
 </select></label>
 ${field('メーカー','maker',t.maker)}
 ${field('商品名・型番','name',t.name,'text','required')}
@@ -1625,18 +1625,7 @@ onclick="searchLocation06(${i})">
 
 <hr>
 
-${field(
-'緯度','latitude06',
-p.weatherLat??'','number',
-'step="any" min="-90" max="90"'
-)}
-
-${field(
-'経度','longitude06',
-p.weatherLon??'','number',
-'step="any" min="-180" max="180"'
-)}
-
+<div id="map17"></div><p id="pin17">地図をタップして釣り場を指定</p><input type="hidden" id="latitude06" value="${esc(p.weatherLat??'')}"><input type="hidden" id="longitude06" value="${esc(p.weatherLon??'')}"><button class="sub" onclick="favorite17(${i})">この地点をお気に入りに登録</button><div id="favorites17"></div>
 <button class="primary"
 onclick="fetchWeather06(${i})">
 
@@ -1778,15 +1767,7 @@ button.textContent=
 
 button.onclick=()=>{
 
-document.getElementById(
-'latitude06'
-).value=r.latitude;
-
-document.getElementById(
-'longitude06'
-).value=r.longitude;
-
-fetchWeather06(i);
+selectPin17(i,r.latitude,r.longitude,[r.name,r.admin1].filter(Boolean).join(' / '),true);
 
 };
 
@@ -3141,7 +3122,7 @@ function gouSelect11(id){let old=document.getElementById(id);if(!old)return;let 
 const spoolFormBase11=spoolForm10;spoolForm10=function(...args){spoolFormBase11(...args);gouSelect11('sgou10');gouSelect11('sleaderGou10');};
 const specBase11=specFields;specFields=function(t={}){specBase11(t);if(value('category')!=='ライン')return;let old=document.getElementById('line');if(!old)return;let m=(t.line||'').match(/^(PE|ナイロン|フロロ(?:カーボン)?|エステル|その他)\s*([\d.]+)号/);old.insertAdjacentHTML('beforebegin',`<select id="kind11">${options(kinds10,m?m[1].replace('カーボン',''):'未設定')}</select><input id="gou11" type="number" min="0.01" step="any" value="${m?esc(m[2]):''}">`);gouSelect11('gou11');old.readOnly=true;old.hidden=true;const sync=()=>{let k=value('kind11'),g=value('gou11');if(k!=='未設定'&&g)old.value=k+' '+g+'号';};old.parentElement.addEventListener('change',sync);};
 const saveBase11=saveTackle;saveTackle=function(e,i){if(value('category')==='ライン'&&value('kind11')!=='未設定'&&value('gou11'))document.getElementById('line').value=value('kind11')+' '+value('gou11')+'号';saveBase11(e,i);};
-const tideBase11=renderTide07;renderTide07=function(i){tideBase11(i);let el=document.getElementById('tidePanel07');if(!el)return;el.insertAdjacentHTML('afterbegin',`<h3>海面水位の自動予報</h3><button class="primary" onclick="autoTide11(${i})">潮位予報を取得・更新</button><div id="autoTide11"></div><small>Open-Meteo 海洋モデル・平均海面基準。気象庁潮位表とは基準が異なります。下の手動潮汐表も利用できます。</small><hr>`);if(value('latitude06')&&value('longitude06'))autoTide11(i);};
+renderTide07=function(i){let el=document.getElementById('tidePanel07');if(!el)return;el.innerHTML=`<h3>🌊 潮位予報</h3><div id="autoTide11">地点を指定すると自動取得します。</div><small>Open-Meteo 海洋モデル・平均海面基準。気象庁潮位表とは基準が異なります。</small><button class="sub" onclick="openTide07()">気象庁の潮位表を確認</button>`;if(value('latitude06')&&value('longitude06'))autoTide11(i);};
 async function autoTide11(i){let el=document.getElementById('autoTide11'),p=read('plans')[i];if(!el||!p)return;let a=value('latitude06'),b=value('longitude06');if(!a||!b||Math.abs(+a)>90||Math.abs(+b)>180){el.textContent='先に釣り場の地点を設定してください。';return;}let token=String(Math.random());el.dataset.token=token;el.textContent='取得中…';try{let q=new URLSearchParams({latitude:a,longitude:b,hourly:'sea_level_height_msl',timezone:'Asia/Tokyo',start_date:p.date,end_date:p.date});let r=await api06('https://marine-api.open-meteo.com/v1/marine?'+q);if(!el.isConnected||el.dataset.token!==token)return;let h=r.hourly,rows=(h?.time||[]).map((t,j)=>({t:t.slice(11,16),v:h.sea_level_height_msl?.[j]})).filter(x=>Number.isFinite(x.v));if(rows.length<3)throw Error('no data');let lo=Math.min(...rows.map(x=>x.v)),hi=Math.max(...rows.map(x=>x.v)),span=hi-lo||1;let pts=rows.map((x,j)=>`${32+j*270/(rows.length-1)},${110-(x.v-lo)/span*85}`).join(' ');let extrema=rows.filter((x,j)=>j>0&&j<rows.length-1&&((x.v>rows[j-1].v&&x.v>=rows[j+1].v)||(x.v<rows[j-1].v&&x.v<=rows[j+1].v))).map(x=>`${x.v>rows[rows.indexOf(x)-1].v?'満潮付近':'干潮付近'} ${x.t}：${Math.round(x.v*100)}cm`);el.innerHTML=`<p>${esc(p.date)}（日本時間）</p><svg viewBox="0 0 320 145" width="100%" role="img" aria-label="時間別海面水位グラフ"><text x="0" y="20" font-size="10">${Math.round(hi*100)}cm</text><text x="0" y="120" font-size="10">${Math.round(lo*100)}cm</text><polyline points="${pts}" fill="none" stroke="#176b9b" stroke-width="2"/><text x="32" y="140" font-size="10">${rows[0].t}</text><text x="275" y="140" font-size="10">${rows.at(-1).t}</text></svg><p>${extrema.join('<br>')||'日内の極値なし'}</p><small>1時間刻みの予報から求めた概算。正確な満干潮時刻・潮回りではありません。</small><details><summary>時間別水位</summary>${rows.map(x=>`<p>${x.t}：${Math.round(x.v*100)}cm</p>`).join('')}</details>`;}catch(e){if(el.isConnected&&el.dataset.token===token)el.textContent='潮位予報を取得できませんでした。地点・日付・通信状況を確認するか、気象庁潮位表をご利用ください。';}}
 const weatherBase11=fetchWeather06;fetchWeather06=function(i){let result=weatherBase11(i);if(document.getElementById('autoTide11'))autoTide11(i);return result;};
 const settingsBase11=settings;settings=function(){settingsBase11();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 1.1';});};
@@ -3192,15 +3173,13 @@ put('ロッド','🎣',rod?.c||[],rod?.t.name||'登録なし',!rod);
 put('リール','⚙️',pair?.c.slice(0,2)||[],pair?.t.name||'登録なし',!pair&&!optional,!needReel);
 put('ライン','🧵',pair?.c.slice(2,4)||[],pair?desc10(pair.sp):'装着情報なし',!pair&&!optional,!needReel);
 put('リーダー','🪢',pair?.c.slice(4)||[],pair?.c[4]?.detail||'登録なし',!pair&&!optional,!needReel);
-let rigCandidates=rigs.map(t=>({t,c:rigCheck16(t,p,s,rod?.t)})),bestRig=best13(rigCandidates);put('仕掛け・ルアー','🐟',bestRig?.c||[],bestRig?.t.name||'登録なし',!bestRig);if(bestRig){shopping13=shopping13.filter(x=>!x.startsWith('仕掛け：'));add('仕掛け・ルアー',bestRig);}
-let other=owned.filter(t=>!['ロッド','リール','ライン','仕掛け'].includes(t.category));put('その他用品','🎒',[{label:'準備確認',status:'判定不可',detail:'タモ・プライヤー等の必要用品を確認'}],other.map(t=>t.name).join('、')||'必要用品を確認');
 let cls=x=>x==='適合'?'good':x==='変更推奨'?'bad':x==='対象外'?'':'warn';let applicable=cats.filter(x=>x.status!=='対象外'),counts=['適合','変更推奨','要確認'].map((v,i)=>applicable.filter(x=>i===2?!['適合','変更推奨'].includes(x.status):x.status===v).length);let colors=['#168047','#c0392b','#b77910'];
-return `<div class="panel" id="diagnosis13"><h3>🎣 総合適合診断</h3><p>${esc(p.fish)} × ${esc(p.method)} × ${esc(p.place)}</p><small>登録情報と一般的な推奨値の照合です。安全性・接続互換性は保証しません。</small>${unsupported?'<p class="warn">釣り場専用データ未整備：参考判定のみ</p>':''}<div class="diag15counts">${['適合','変更推奨','要確認'].map((x,i)=>`<div style="color:${colors[i]}"><strong>${counts[i]}</strong>${x}</div>`).join('')}</div><div class="diag15bar" aria-hidden="true">${counts.map((n,i)=>`<span style="flex:${n};background:${colors[i]}"></span>`).join('')}</div><div class="diag15grid">${cats.map(x=>`<details class="diag15card"><summary><span class="diag15name">${x.icon} ${esc(x.name)}</span><span class="diag15status ${cls(x.status)}">${x.status==='適合'?'✓ ':x.status==='変更推奨'?'× ':x.status==='対象外'?'— ':'! '}${esc(x.status)}</span><small>${esc(x.summary)}</small></summary><div class="detail15">${x.status==='対象外'?'<p>この釣法ではリール不要</p>':x.checks.length?x.checks.map(row13).join(''):'<p>登録情報を確認してください。</p>'}</div></details>`).join('')}</div><details><summary>全ロッド・装着中リールの診断</summary>${rods.map(card).join('<hr>')}${pairs.filter(x=>x.active).map(card).join('<hr>')}</details><h3>手持ちルアー・仕掛け候補</h3>${rigCandidates.length?rigCandidates.slice().sort((x,y)=>rank13(x.c)-rank13(y.c)).map(x=>`<details><summary>${esc(x.t.name)}：${esc(status13(x.c))}</summary>${x.c.map(row13).join('')}</details>`).join(''):'<p>登録なし</p>'}<h3>予備スプール候補</h3>${alternatives.length?alternatives.map(card).join('<hr>'):'<p>推奨号数・種類に合う予備スプールなし</p>'}<h3>改善アドバイス・買い物／確認リスト</h3>${shopping13.map(x=>`<label style="display:block"><input type="checkbox" style="width:auto"> ${esc(x)}</label>`).join('')}<button class="sub" onclick="copyShopping13()">リストをコピー</button><small>判定不可・未登録は購入必須ではありません。先に手持ちの仕様を確認してください。</small></div>`;}
+return `<div class="panel" id="diagnosis13"><h3>🎣 総合適合診断</h3><p>${esc(p.fish)} × ${esc(p.method)} × ${esc(p.place)}</p><small>登録情報と一般的な推奨値の照合です。安全性・接続互換性は保証しません。</small>${unsupported?'<p class="warn">釣り場専用データ未整備：参考判定のみ</p>':''}<div class="diag15counts">${['適合','変更推奨','要確認'].map((x,i)=>`<div style="color:${colors[i]}"><strong>${counts[i]}</strong>${x}</div>`).join('')}</div><div class="diag15bar" aria-hidden="true">${counts.map((n,i)=>`<span style="flex:${n};background:${colors[i]}"></span>`).join('')}</div><div class="diag15grid">${cats.map(x=>`<details class="diag15card"><summary><span class="diag15name">${x.icon} ${esc(x.name)}</span><span class="diag15status ${cls(x.status)}">${x.status==='適合'?'✓ ':x.status==='変更推奨'?'× ':x.status==='対象外'?'— ':'! '}${esc(x.status)}</span><small>${esc(x.summary)}</small></summary><div class="detail15">${x.status==='対象外'?'<p>この釣法ではリール不要</p>':x.checks.length?x.checks.map(row13).join(''):'<p>登録情報を確認してください。</p>'}</div></details>`).join('')}</div></div>`;}
 
 const recBase13=recommendScreen;recommendScreen=function(){recBase13();let h=[...app.querySelectorAll('h3')].find(x=>x.textContent==='マイタックルとの照合');if(h){let old=h.nextElementSibling;while(old&&old.classList.contains('panel')){let next=old.nextElementSibling;old.remove();old=next;}h.insertAdjacentHTML('afterend',diagnosis13(planData));h.remove();}};
 const settingsBase13=settings;settings=function(){settingsBase13();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 1.3';});};
-backup=function(){let blob=new Blob([JSON.stringify({version:'1.6',tackle:read('tackle'),plans:read('plans'),catches:read('catches')},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='tackle-navi-backup-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
-document.querySelector('footer').textContent='釣具なび（TACKLE NAVI） | Ver. 1.6';
+backup=function(){let blob=new Blob([JSON.stringify({version:'1.7',tackle:read('tackle'),plans:read('plans'),catches:read('catches')},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='tackle-navi-backup-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+document.querySelector('footer').textContent='釣具なび（TACKLE NAVI） | Ver. 1.7';
 
 /* Ver.1.4 common selection controls */
 const makers14='シマノ,ダイワ,メジャークラフト,アブガルシア,ヤマガブランクス,がまかつ,ジャッカル,テイルウォーク,オリムピック,天龍,宇崎日新,デュエル,サンライン,バリバス,よつあみ,東レ,クレハ,ゴーセン,オーナー,ハヤブサ,メガバス,ブルーブルー,アイマ,デプス,エバーグリーン,ラパラ'.split(',');
@@ -3215,23 +3194,22 @@ const save14=saveTackle;saveTackle=function(e,i){let keys=['rodType14','gear14',
 const spool14=spoolForm10;spoolForm10=function(...a){spool14(...a);pick14('smaker10',makers14);pick14('skind10',kinds10);pick14('sleaderKind10',['フロロ','ナイロン','PE','エステル']);pick14('slb10',['1','2','3','4','5','6','8','10','12','14','16','18','20','22','25','30','35','40','50','60','80','100','120'],'lb');pick14('sm10',['25','50','75','100','120','150','200','250','300','400','500','600','1000'],'m');pick14('sleaderLength10',['0.3','0.5','0.8','1','1.2','1.5','2','2.5','3','4','5','10'],'m');};
 const catch14=catchForm;catchForm=function(c={},i=-1){catch14(c,i);pick14('fish',Object.keys(db));pick14('method',Object.keys(methods));pick14('count',Array.from({length:51},(_,i)=>String(i)),'匹');pick14('length',Array.from({length:150},(_,i)=>String(i+1)),'cm');let el=document.getElementById('location');el.insertAdjacentHTML('afterend',extra14('釣り場の種類','catchPlace14',c.place14));pick14('catchPlace14',['堤防','漁港','砂浜','磯','船','河口','河川','湖','池','管理釣り場']);};
 const saveCatch14=saveCatch;saveCatch=function(e,i){let place=value('catchPlace14'),w=write;write=function(k,a){if(k==='catches')a[i<0?a.length-1:i].place14=place;return w(k,a);};try{return saveCatch14(e,i);}finally{write=w;}};
-const settings14=settings;settings=function(){settings14();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 1.6';});};
+const settings14=settings;settings=function(){settings14();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 1.7';});};
 
-/* Ver.1.6 rig inventory and compatibility */
-const rigTypes16=['ミノー','シンキングペンシル','バイブレーション','メタルジグ','ワーム','ジグヘッド','エギ','トップウォーター','スプーン','クランクベイト','タイラバ','サビキ','ウキ仕掛け','胴突き','投げ仕掛け','ブラクリ','フカセ仕掛け','泳がせ仕掛け','友釣り仕掛け','吸い込み仕掛け','エサ釣り仕掛け'];
-const places16=['堤防','漁港','砂浜','磯','船','河口','河川','湖','池','管理釣り場'];
-let rigPhoto16='',rigLoading16=false,rigToken16=0;
-const spec16=specFields;specFields=function(t={}){spec16(t);++rigToken16;rigLoading16=false;rigPhoto16=t.rigPhoto16||'';if(value('category')!=='仕掛け')return;let el=document.getElementById('specs');for(let [label,id,opts,unit] of [['所持数','qty16',Array.from({length:31},(_,i)=>String(i)),'個'],['浮力タイプ','float16',['フローティング','シンキング','サスペンド','スローシンキング','ファストシンキング','対象外'],''],['潜行レンジ（最大）','depth16',['0','0.1','0.3','0.5','0.8','1','1.5','2','3','4','5','10','20'],'m'],['対象魚（主な魚種）','fish16',Object.keys(db),''],['釣り場（主な場所）','place16',places16,''],['エギの号数','egi16',['1.5','1.8','2','2.5','3','3.5','4','4.5'],'号']]){el.insertAdjacentHTML('beforeend',extra14(label,id,t[id]??(id==='qty16'?'1':'')));pick14(id,opts,unit);}let sel=document.getElementById('rigType14')?.previousElementSibling;if(sel?.tagName==='SELECT')for(let x of rigTypes16)if(![...sel.options].some(o=>o.value===x))sel.add(new Option(x,x),sel.options[sel.options.length-1]);el.insertAdjacentHTML('beforeend',`<label>ルアー・仕掛け写真<input type="file" accept="image/*" onchange="loadRig16(event)"></label><div id="rigPreview16"></div><button type="button" class="sub" onclick="clearRig16()">写真を取り消す</button>`);previewRig16();};
-function previewRig16(){let el=document.getElementById('rigPreview16');if(el)el.innerHTML=rigPhoto16&&/^data:image\/jpeg;base64,/.test(rigPhoto16)?`<img class="photo" src="${esc(rigPhoto16)}">`:'';}
-function clearRig16(){++rigToken16;rigLoading16=false;rigPhoto16='';let f=document.querySelector('#specs input[type=file]');if(f)f.value='';previewRig16();}
-function loadRig16(e){let f=e.target.files[0];if(!f)return;let token=++rigToken16;rigLoading16=true;let url=URL.createObjectURL(f),img=new Image();img.onload=()=>{try{if(token!==rigToken16)return;let c=document.createElement('canvas'),r=Math.min(1,480/Math.max(img.width,img.height));c.width=Math.max(1,Math.round(img.width*r));c.height=Math.max(1,Math.round(img.height*r));c.getContext('2d').drawImage(img,0,0,c.width,c.height);rigPhoto16=c.toDataURL('image/jpeg',0.65);previewRig16();}catch(e){alert('写真を処理できませんでした');}finally{URL.revokeObjectURL(url);if(token===rigToken16)rigLoading16=false;}};img.onerror=()=>{URL.revokeObjectURL(url);if(token===rigToken16){rigLoading16=false;alert('写真を読み込めませんでした');}};img.src=url;}
-const save16=saveTackle;saveTackle=function(e,i){if(value('category')!=='仕掛け')return save16(e,i);e.preventDefault();if(rigLoading16)return alert('写真の読み込み完了をお待ちください');let extra={rigPhoto16};for(let k of ['qty16','float16','depth16','fish16','place16','egi16'])extra[k]=value(k);for(let k of ['qty16','depth16','egi16','rigWeight14','rigSize14']){let v=value(k);if(v!==''&&(!Number.isFinite(Number(v))||Number(v)<0||(k==='qty16'&&!Number.isInteger(Number(v)))))return alert('数値を確認してください：'+k);}let w=write;write=function(k,a){if(k==='tackle')Object.assign(a[i<0?a.length-1:i],extra);return w(k,a);};try{return save16(e,i);}finally{write=w;}};
-const tackle16=tackle;tackle=function(){tackle16();let all=read('tackle'),rigs=all.filter(t=>t.category==='仕掛け');let h=app.querySelector('h2');if(h)h.insertAdjacentHTML('afterend',`<div class="panel"><b>ルアー・仕掛け</b><p>${rigs.length}種類 ／ 所持数登録済み ${rigs.reduce((n,t)=>n+(Number(t.qty16)||0),0)}個</p><button class="sub" onclick="rigList16()">ルアー・仕掛け一覧</button></div>`);all.forEach((t,i)=>{if(t.category!=='仕掛け')return;let b=app.querySelector(`button[onclick="tackleForm(${i})"]`);if(b)b.insertAdjacentHTML('beforebegin',rigInfo16(t));});};
-function rigInfo16(t){return `${/^data:image\/jpeg;base64,/.test(t.rigPhoto16||'')?`<img class="photo" style="max-height:140px;object-fit:contain" src="${esc(t.rigPhoto16)}">`:''}<p>${esc([t.rigType14,t.rigWeight14&&t.rigWeight14+'g',t.rigSize14&&t.rigSize14+'mm',t.rigColor14,t.float16,t.depth16!==undefined&&t.depth16!==''?'潜行 '+t.depth16+'m':'',t.egi16&&t.egi16+'号'].filter(Boolean).join(' ／ '))}</p><p>所持数：${esc(t.qty16==null||t.qty16===''?'未設定':t.qty16+'個')} ${esc([t.fish16,t.place16].filter(Boolean).join(' ／ '))}</p>`;}
-function rigList16(){let a=read('tackle');show(back('tackle')+'<h2>マイルアー・仕掛け</h2><button class="primary" onclick="tackleForm();document.getElementById(\'category\').value=\'仕掛け\';specFields()">＋ 登録</button>'+a.map((t,i)=>t.category==='仕掛け'?`<div class="panel"><h3>${esc(t.maker||'')} ${esc(t.name)}</h3>${rigInfo16(t)}<button class="sub" onclick="tackleForm(${i})">編集</button></div>`:'').join(''));}
-const methodRig16={'アジング':['ジグヘッド','ワーム'],'メバリング':['ジグヘッド','ワーム'],'エギング':['エギ'],'チニング':['ワーム','ジグヘッド'],'ショアジギング':['メタルジグ'],'タイラバ':['タイラバ'],'サビキ釣り':['サビキ'],'投げ釣り':['投げ仕掛け'],'穴釣り':['ブラクリ','胴突き'],'フカセ釣り':['フカセ仕掛け','ウキ仕掛け'],'友釣り':['友釣り仕掛け'],'吸い込み釣り':['吸い込み仕掛け'],'ウキ釣り':['ウキ仕掛け'],'泳がせ釣り':['泳がせ仕掛け'],'エサ釣り':['エサ釣り仕掛け']};
-const fishRig16={'シーバス':['ミノー','バイブレーション','シンキングペンシル','メタルジグ','トップウォーター'],'ヒラメ':['ワーム','ジグヘッド','メタルジグ','ミノー'],'カサゴ':['ワーム','ジグヘッド'],'タチウオ':['ワーム','メタルジグ'],'ブラックバス':['ワーム','ミノー','クランクベイト','トップウォーター'],'ナマズ':['トップウォーター'],'トラウト':['スプーン','ミノー','クランクベイト'],'ヤマメ':['ミノー','スプーン'],'イワナ':['ミノー','スプーン']};
-function rigCheck16(t,p,s,rod){let types=p.method==='ルアー釣り'?fishRig16[p.fish]:methodRig16[p.method],w=num13(t.rigWeight14),lo=num13(rod?.min),hi=num13(rod?.max),range=range13(s.a[2],/^(\d+(?:\.\d+)?)〜(\d+(?:\.\d+)?)g$/),q=num13(t.qty16);let c=[{label:'種類',status:!types||!t.rigType14?'判定不可':types.includes(t.rigType14)?'適合':'変更推奨',detail:t.rigType14||'未登録'},{label:'所持数',status:q==null?'判定不可':q>0?'適合':'変更推奨',detail:q==null?'未登録':q+'個'}];if(range)c.push(check13('推奨重量（g）',w,range));if(p.method==='エギング')c.push(check13('エギ号数',num13(t.egi16),[2.5,3.5]));c.push({label:'ロッドとの重量照合',status:w==null||lo==null||hi==null||lo>hi?'判定不可':w>=lo&&w<=hi?'適合':'変更推奨',detail:w==null||lo==null||hi==null?'重量またはロッド仕様が未登録':`${w}g ／ ロッド ${lo}〜${hi}g${w>hi?'（重量超過）':''}。オモリ・餌等を含む総重量も確認`});if(t.fish16)c.push({label:'登録対象魚',status:t.fish16===p.fish?'適合':'判定不可',detail:t.fish16});if(t.place16)c.push({label:'登録釣り場',status:t.place16===p.place?'適合':'判定不可',detail:t.place16});if(!range&&p.method!=='エギング')c.push({label:'針・仕掛け総重量',status:'判定不可',detail:'対象魚・釣り場に合わせて確認'});return c;}
+
+
+/* Ver.1.7 map selection */
+let map17=null,marker17=null,pinName17='';
+function selectPin17(i,lat,lon,name='',zoom=false){
+ if(!document.getElementById('latitude06'))return;
+ document.getElementById('latitude06').value=lat;document.getElementById('longitude06').value=lon;
+ pinName17=name||'地図で指定した地点';document.getElementById('pin17').textContent=pinName17+'（選択済み）';
+ if(map17){if(marker17)marker17.setLatLng([lat,lon]);else marker17=L.marker([lat,lon]).addTo(map17);if(zoom)map17.setView([lat,lon],13);}
+ let a=read('plans');if(a[i]){a[i].weatherLat=lat;a[i].weatherLon=lon;a[i].pinName17=pinName17;write('plans',a);}fetchWeather06(i);
+}
+function favorites17(i){let el=document.getElementById('favorites17');if(!el)return;el.replaceChildren();read('favorites17').forEach((f,j)=>{let b=document.createElement('button');b.className='sub';b.textContent=f.name;b.onclick=()=>selectPin17(i,f.lat,f.lon,f.name,true);el.appendChild(b);let d=document.createElement('button');d.className='sub';d.textContent='削除';d.onclick=()=>{let a=read('favorites17');a.splice(j,1);write('favorites17',a);favorites17(i);};el.appendChild(d);});}
+function favorite17(i){let a=value('latitude06'),b=value('longitude06');if(!a||!b)return alert('先に地点を指定してください');let name=prompt('お気に入りの名前',pinName17);if(!name?.trim())return;let f=read('favorites17');f.push({name:name.trim(),lat:Number(a),lon:Number(b)});if(write('favorites17',f))favorites17(i);}
+const decision17=decisionDetail;decisionDetail=function(i){if(map17){map17.remove();map17=null;marker17=null;}decision17(i);let p=read('plans')[i],el=document.getElementById('map17');if(!p||!el)return;let valid=p.weatherLat!=null&&p.weatherLon!=null;pinName17=p.pinName17||'保存済み地点';if(valid)document.getElementById('pin17').textContent=pinName17+'（選択済み）';favorites17(i);if(typeof L==='undefined'){el.textContent='地図を読み込めません。地名検索をご利用ください。';return;}map17=L.map(el).setView(valid?[p.weatherLat,p.weatherLon]:[35.3,139.6],valid?13:6);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map17);if(valid)marker17=L.marker([p.weatherLat,p.weatherLon]).addTo(map17);map17.on('click',e=>selectPin17(i,e.latlng.lat,e.latlng.lng));};
 
 home();
 </script>
