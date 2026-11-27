@@ -32,6 +32,15 @@ small{color:#52748c}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .stat{background:white;padding:18px;border-radius:12px;text-align:center}
 .stat strong{display:block;font-size:26px;margin-top:8px}
+
+.hero.hero15{background:none;color:#123e60;padding:0 0 8px;border-radius:0;text-align:center;margin-bottom:16px;box-shadow:none}
+.hero15 h2{font-size:clamp(12px,4.4vw,22px);white-space:nowrap;margin:8px 0 4px;letter-spacing:0}
+.hero15 p{font-size:12px;color:#52748c;margin:0}
+.diag15grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start;margin:14px 0}
+.diag15card{border:1px solid #d6e5ef;border-radius:12px;background:#fff;min-width:0;overflow:hidden}
+.diag15card summary{cursor:pointer;list-style:none;padding:12px;min-height:130px;display:flex;flex-direction:column;gap:6px;overflow-wrap:anywhere}
+.diag15card summary::-webkit-details-marker{display:none}.diag15card summary:after{content:'詳細を見る ▾';font-size:11px;color:#52748c;margin-top:auto}.diag15card[open] summary:after{content:'閉じる ▴'}
+.diag15card .detail15{padding:0 12px 10px;border-top:1px solid #e2edf4;font-size:13px}.diag15card .detail15 p{margin:10px 0}.diag15status{font-weight:bold;font-size:16px}.diag15counts{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;gap:4px;background:#eef5fa;padding:10px;border-radius:10px;font-size:12px}.diag15counts strong{display:block;font-size:24px}.diag15bar{display:flex;height:7px;border-radius:8px;overflow:hidden;margin-top:8px}.diag15bar span{display:block}.diag15name{font-weight:bold;font-size:15px}
 </style>
 </head>
 <body>
@@ -130,8 +139,9 @@ return items.map(x=>`<option ${x===current?'selected':''}>${esc(x)}</option>`).j
 }
 function home(){
 show(`
-<div class="hero">
-<h2>次の釣りを、もっと楽しく。</h2>
+<div class="hero hero15">
+<svg viewBox="0 0 320 55" width="100%" height="55" aria-hidden="true"><circle cx="160" cy="23" r="19" fill="#f4d49a"/><path d="M0 34 Q40 24 80 34 T160 34 T240 34 T320 34 V49 H0Z" fill="#c4e1ed"/><path d="M0 43 Q40 33 80 43 T160 43 T240 43 T320 43 V55 H0Z" fill="#8bbfd4"/></svg>
+<h2>次の釣りをもっと楽しく。</h2>
 <p>釣りの計画から釣果の記録まで。</p>
 </div>
 <div class="stats">
@@ -3177,11 +3187,20 @@ function row13(c){return `<p>${esc(c.label)}：${esc(c.detail)}<br><b class="${c
 function best13(a){return a.slice().sort((x,y)=>rank13(x.c)-rank13(y.c))[0];}
 let shopping13=[];
 function copyShopping13(){let text=shopping13.join('\n');if(navigator.clipboard?.writeText)navigator.clipboard.writeText(text).then(()=>alert('コピーしました')).catch(()=>prompt('買い物・確認リスト',text));else prompt('買い物・確認リスト',text);}
-function diagnosis13(p){let s=spec09(p);if(!s)return '';let owned=read('tackle'),rods=owned.filter(t=>t.category==='ロッド').map(t=>({t,c:rod13(t,s)})),reels=owned.filter(t=>t.category==='リール').map(t=>({t,c:reel13(t,s)})),pairs=reels.flatMap(x=>{let active=current10(x.t);return [active,...(x.t.spools10||[]).filter(y=>y.id!==x.t.active10)].map((sp,i)=>({t:x.t,sp,active:i===0,c:[...x.c,...spool13(sp,s)]}));}),rod=best13(rods),pair=best13(pairs),rigs=owned.filter(t=>t.category==='仕掛け'),needReel=s.a[3]!=='不要',optional=/必要に応じて|対象魚による/.test(s.a[3]),unsupported=s.note.includes('未整備')||s.note.includes('未確認');shopping13=[];let add=(name,x)=>{if(!x)shopping13.push(name+'：未登録・所有確認');else for(let c of x.c)if(c.status!=='適合')shopping13.push(name+'／'+c.label+'：'+c.status);};add('ロッド',rod);if(needReel&&!optional)add('リール・ライン',pair);if(!rigs.length)shopping13.push('仕掛け：未登録・所有確認');else shopping13.push('仕掛け：重量・針・対象魚を確認');if(unsupported)shopping13.push('釣り場専用の仕様を確認');let alternatives=pairs.filter(x=>!x.active&&x.c.find(c=>c.label==='ライン種類・号数')?.status==='適合'&&!x.c.slice(0,2).some(c=>c.status==='変更推奨'));let card=(x)=>`<b>${esc(x.t.name)}${x.sp?' ／ '+esc(x.sp.name||'スプール')+(x.active?'（装着中）':'（予備）'):''}</b>${x.c.map(row13).join('')}`;return `<div class="panel" id="diagnosis13"><h3>🎣 総合適合診断</h3><p>${esc(p.fish)} × ${esc(p.method)} × ${esc(p.place)}</p><small>登録情報と一般的な推奨値の照合です。実際の安全性・竿とリールの接続互換性は保証しません。</small>${unsupported?'<p class="warn">釣り場専用データ未整備：以下は参考判定のみ</p>':''}<h3>手持ちのおすすめ組み合わせ（候補）</h3>${rod?card(rod):'<p class="warn">ロッド：未登録</p>'}<hr>${!needReel?'<p>リール不要</p>':pair?card(pair):'<p class="warn">リール：未登録または要確認</p>'}<hr><b>仕掛け・ルアー</b><p>${rigs.map(t=>esc(t.name)).join('、')||'未登録'}</p><p class="warn">判定不可：重量・針・製品仕様を確認</p><details><summary>全ロッド・装着中リールの診断</summary>${rods.map(card).join('<hr>')}${pairs.filter(x=>x.active).map(card).join('<hr>')}</details><h3>予備スプール候補</h3>${alternatives.length?alternatives.map(card).join('<hr>'):'<p>推奨号数・種類に合う予備スプールなし</p>'}<h3>買い物・確認リスト</h3>${shopping13.map(x=>`<label style="display:block"><input type="checkbox" style="width:auto"> ${esc(x)}</label>`).join('')}<button class="sub" onclick="copyShopping13()">リストをコピー</button><small>判定不可・未登録は購入必須ではありません。先に手持ちの仕様を確認してください。</small></div>`;}
+function diagnosis13(p){let s=spec09(p);if(!s)return '';let owned=read('tackle'),rods=owned.filter(t=>t.category==='ロッド').map(t=>({t,c:rod13(t,s)})),reels=owned.filter(t=>t.category==='リール').map(t=>({t,c:reel13(t,s)})),pairs=reels.flatMap(x=>{let active=current10(x.t);return [active,...(x.t.spools10||[]).filter(y=>y.id!==x.t.active10)].map((sp,i)=>({t:x.t,sp,active:i===0,c:[...x.c,...spool13(sp,s)]}));}),rod=best13(rods),pair=best13(pairs.filter(x=>x.active)),rigs=owned.filter(t=>t.category==='仕掛け'),needReel=s.a[3]!=='不要',optional=/必要に応じて|対象魚による/.test(s.a[3]),unsupported=s.note.includes('未整備')||s.note.includes('未確認');shopping13=[];let add=(name,x)=>{if(!x)shopping13.push(name+'：未登録・所有確認');else for(let c of x.c)if(c.status!=='適合')shopping13.push(name+'／'+c.label+'：'+c.status);};add('ロッド',rod);if(needReel&&!optional)add('リール・ライン',pair);if(!rigs.length)shopping13.push('仕掛け：未登録・所有確認');else shopping13.push('仕掛け：重量・針・対象魚を確認');if(unsupported)shopping13.push('釣り場専用の仕様を確認');let alternatives=pairs.filter(x=>!x.active&&x.c.find(c=>c.label==='ライン種類・号数')?.status==='適合'&&!x.c.slice(0,2).some(c=>c.status==='変更推奨'));let card=(x)=>`<b>${esc(x.t.name)}${x.sp?' ／ '+esc(x.sp.name||'スプール')+(x.active?'（装着中）':'（予備）'):''}</b>${x.c.map(row13).join('')}`;let cats=[];let put=(name,icon,checks,summary,missing=false,skip=false)=>{let status=skip?'対象外':missing?'未登録':checks.length?status13(checks):'判定不可';cats.push({name,icon,checks,summary,status});};
+put('ロッド','🎣',rod?.c||[],rod?.t.name||'登録なし',!rod);
+put('リール','⚙️',pair?.c.slice(0,2)||[],pair?.t.name||'登録なし',!pair&&!optional,!needReel);
+put('ライン','🧵',pair?.c.slice(2,4)||[],pair?desc10(pair.sp):'装着情報なし',!pair&&!optional,!needReel);
+put('リーダー','🪢',pair?.c.slice(4)||[],pair?.c[4]?.detail||'登録なし',!pair&&!optional,!needReel);
+put('仕掛け・ルアー','🐟',rigs.length?[{label:'仕掛け',status:'判定不可',detail:'重量・針・製品仕様を確認'}]:[],rigs.map(t=>t.name).join('、')||'登録なし',!rigs.length);
+let other=owned.filter(t=>!['ロッド','リール','ライン','仕掛け'].includes(t.category));put('その他用品','🎒',[{label:'準備確認',status:'判定不可',detail:'タモ・プライヤー等の必要用品を確認'}],other.map(t=>t.name).join('、')||'必要用品を確認');
+let cls=x=>x==='適合'?'good':x==='変更推奨'?'bad':x==='対象外'?'':'warn';let applicable=cats.filter(x=>x.status!=='対象外'),counts=['適合','変更推奨','要確認'].map((v,i)=>applicable.filter(x=>i===2?!['適合','変更推奨'].includes(x.status):x.status===v).length);let colors=['#168047','#c0392b','#b77910'];
+return `<div class="panel" id="diagnosis13"><h3>🎣 総合適合診断</h3><p>${esc(p.fish)} × ${esc(p.method)} × ${esc(p.place)}</p><small>登録情報と一般的な推奨値の照合です。安全性・接続互換性は保証しません。</small>${unsupported?'<p class="warn">釣り場専用データ未整備：参考判定のみ</p>':''}<div class="diag15counts">${['適合','変更推奨','要確認'].map((x,i)=>`<div style="color:${colors[i]}"><strong>${counts[i]}</strong>${x}</div>`).join('')}</div><div class="diag15bar" aria-hidden="true">${counts.map((n,i)=>`<span style="flex:${n};background:${colors[i]}"></span>`).join('')}</div><div class="diag15grid">${cats.map(x=>`<details class="diag15card"><summary><span class="diag15name">${x.icon} ${esc(x.name)}</span><span class="diag15status ${cls(x.status)}">${x.status==='適合'?'✓ ':x.status==='変更推奨'?'× ':x.status==='対象外'?'— ':'! '}${esc(x.status)}</span><small>${esc(x.summary)}</small></summary><div class="detail15">${x.status==='対象外'?'<p>この釣法ではリール不要</p>':x.checks.length?x.checks.map(row13).join(''):'<p>登録情報を確認してください。</p>'}</div></details>`).join('')}</div><details><summary>全ロッド・装着中リールの診断</summary>${rods.map(card).join('<hr>')}${pairs.filter(x=>x.active).map(card).join('<hr>')}</details><h3>予備スプール候補</h3>${alternatives.length?alternatives.map(card).join('<hr>'):'<p>推奨号数・種類に合う予備スプールなし</p>'}<h3>改善アドバイス・買い物／確認リスト</h3>${shopping13.map(x=>`<label style="display:block"><input type="checkbox" style="width:auto"> ${esc(x)}</label>`).join('')}<button class="sub" onclick="copyShopping13()">リストをコピー</button><small>判定不可・未登録は購入必須ではありません。先に手持ちの仕様を確認してください。</small></div>`;}
+
 const recBase13=recommendScreen;recommendScreen=function(){recBase13();let h=[...app.querySelectorAll('h3')].find(x=>x.textContent==='マイタックルとの照合');if(h){let old=h.nextElementSibling;while(old&&old.classList.contains('panel')){let next=old.nextElementSibling;old.remove();old=next;}h.insertAdjacentHTML('afterend',diagnosis13(planData));h.remove();}};
 const settingsBase13=settings;settings=function(){settingsBase13();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 1.3';});};
-backup=function(){let blob=new Blob([JSON.stringify({version:'1.4',tackle:read('tackle'),plans:read('plans'),catches:read('catches')},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='tackle-navi-backup-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
-document.querySelector('footer').textContent='釣具なび（TACKLE NAVI） | Ver. 1.4';
+backup=function(){let blob=new Blob([JSON.stringify({version:'1.5',tackle:read('tackle'),plans:read('plans'),catches:read('catches')},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='tackle-navi-backup-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+document.querySelector('footer').textContent='釣具なび（TACKLE NAVI） | Ver. 1.5';
 
 /* Ver.1.4 common selection controls */
 const makers14='シマノ,ダイワ,メジャークラフト,アブガルシア,ヤマガブランクス,がまかつ,ジャッカル,テイルウォーク,オリムピック,天龍,宇崎日新,デュエル,サンライン,バリバス,よつあみ,東レ,クレハ,ゴーセン,オーナー,ハヤブサ,メガバス,ブルーブルー,アイマ,デプス,エバーグリーン,ラパラ'.split(',');
@@ -3196,7 +3215,7 @@ const save14=saveTackle;saveTackle=function(e,i){let keys=['rodType14','gear14',
 const spool14=spoolForm10;spoolForm10=function(...a){spool14(...a);pick14('smaker10',makers14);pick14('skind10',kinds10);pick14('sleaderKind10',['フロロ','ナイロン','PE','エステル']);pick14('slb10',['1','2','3','4','5','6','8','10','12','14','16','18','20','22','25','30','35','40','50','60','80','100','120'],'lb');pick14('sm10',['25','50','75','100','120','150','200','250','300','400','500','600','1000'],'m');pick14('sleaderLength10',['0.3','0.5','0.8','1','1.2','1.5','2','2.5','3','4','5','10'],'m');};
 const catch14=catchForm;catchForm=function(c={},i=-1){catch14(c,i);pick14('fish',Object.keys(db));pick14('method',Object.keys(methods));pick14('count',Array.from({length:51},(_,i)=>String(i)),'匹');pick14('length',Array.from({length:150},(_,i)=>String(i+1)),'cm');let el=document.getElementById('location');el.insertAdjacentHTML('afterend',extra14('釣り場の種類','catchPlace14',c.place14));pick14('catchPlace14',['堤防','漁港','砂浜','磯','船','河口','河川','湖','池','管理釣り場']);};
 const saveCatch14=saveCatch;saveCatch=function(e,i){let place=value('catchPlace14'),w=write;write=function(k,a){if(k==='catches')a[i<0?a.length-1:i].place14=place;return w(k,a);};try{return saveCatch14(e,i);}finally{write=w;}};
-const settings14=settings;settings=function(){settings14();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 1.4';});};
+const settings14=settings;settings=function(){settings14();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 1.5';});};
 
 home();
 </script>
