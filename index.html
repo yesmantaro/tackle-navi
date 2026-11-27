@@ -2983,7 +2983,7 @@ backup=function(){
 
 let data={
 
-version:'0.8',
+version:'0.9',
 
 tackle:read('tackle'),
 
@@ -3055,6 +3055,75 @@ const settings07=settings;
 settings=function(){settings07();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 0.8';});};
 document.querySelector('footer').textContent='釣具なび（TACKLE NAVI） | Ver. 0.8';
 /* Ver.0.8 追加コード終了 */
+
+/* Ver.0.9 詳細タックル */
+const gear09={
+'アジング':['UL〜L','5〜7ft','0.5〜3g','1000〜2000番','スピニング・ノーマルギア','ジグヘッド0.5〜3g／ワーム1〜2インチ','30〜80cm'],
+'メバリング':['UL〜L','6〜8ft','1〜7g','1000〜2500番','スピニング・ノーマルギア','ジグヘッド1〜3g／ワーム1〜2インチ','50〜100cm'],
+'エギング':['ML〜M','7〜9ft','エギ2.5〜3.5号','2500〜3000番','スピニング・ノーマル〜ハイギア','エギ2.5〜3.5号','1〜2m'],
+'チニング':['ML〜M','7〜8ft','5〜15g','2000〜3000番','スピニング・ハイギア','ワーム2〜3インチ／5〜15g','1〜2m'],
+'ショアジギング':['M〜MH','9〜10ft','20〜60g','4000〜6000番','スピニング・ハイギア','メタルジグ20〜60g','1〜2m'],
+'タイラバ':['L〜ML（専用竿）','6〜7ft','60〜120g','小型両軸','ベイト・ロー〜ノーマルギア','タイラバ60〜120g（水深・潮流で調整）','3〜5m'],
+'サビキ釣り':['磯竿2〜3号','3〜5m','オモリ5〜10号','2000〜3000番','スピニング・ノーマルギア','サビキ針4〜8号（魚のサイズで調整）','仕掛けに準拠'],
+'投げ釣り':['投げ竿15〜25号','3〜4m','オモリ15〜25号','3000〜5000番','スピニング・ノーマルギア','キス針6〜9号','専用力糸の仕様に準拠'],
+'穴釣り':['短竿・硬め','1〜2m','ブラクリ3〜6号','小型','小型両軸またはスピニング','ブラクリ3〜6号','直結可'],
+'フカセ釣り':['磯竿1〜2号','4〜5.3m','ウキ・ガン玉に適合','2500〜3000番','スピニング・ノーマルギア','対象魚用ウキ・針','1.5〜3m程度のハリス'],
+'友釣り':['専用アユ竿','7〜9m','専用仕掛けに適合','不要','不要','友釣り専用仕掛け','専用仕掛けに準拠'],
+'吸い込み釣り':['コイ専用竿','3〜4m','仕掛け総重量に適合','3000〜5000番','スピニング・ノーマルギア','吸い込み仕掛け','仕掛けに準拠'],
+'ウキ釣り':['対象魚用の磯竿・万能竿','2〜5m程度','ウキ負荷に適合','対象魚による','スピニングまたは延べ竿','対象魚用ウキ・針','水深・仕掛けで調整'],
+'泳がせ釣り':['対象魚用の専用竿','釣り場・対象魚による','生き餌を含む総重量に適合','対象魚による','スピニングまたは両軸','泳がせ専用仕掛け','仕掛け・対象魚で調整'],
+'エサ釣り':['対象魚用の延べ竿など','釣り場による','仕掛けに適合','必要に応じて','延べ竿または適合リール','対象魚用針・餌','仕掛けに準拠']};
+const lure09={
+'シーバス':['ML〜M','8〜9.6ft','7〜30g','2500〜4000番','スピニング・ハイギア','ミノー7〜12cm／バイブレーション7〜30g','1〜2m'],
+'ヒラメ':['M〜MH','9〜11ft','15〜45g','3000〜4000番','スピニング・ハイギア','ワーム3〜5インチ／ジグ15〜45g','1〜2m'],
+'カサゴ':['L〜ML','6〜8ft','3〜15g','2000〜2500番','スピニング・ハイギア','ワーム2〜3インチ／3〜15g','1〜2m'],
+'タチウオ':['ML〜M','8〜9ft','10〜30g','2500〜4000番','スピニング・ハイギア','ワーム3〜5インチ／ジグ10〜30g','1〜2m＋必要に応じ耐切創先糸'],
+'ブラックバス':['M〜MH','6〜7ft','7〜21g','ベイト小型','ベイト・ノーマル〜ハイギア','ワーム3〜5インチ／プラグ7〜21g','直結可'],
+'ナマズ':['M〜MH','6〜7ft','10〜30g','ベイト中型','ベイト・ノーマルギア','トップウォーター5〜8cm','PE使用時30〜100cm'],
+'トラウト':['UL〜L','5〜6.6ft','1〜5g','1000〜2000番','スピニング・ノーマルギア','スプーン1〜5g／小型プラグ','PE使用時50〜100cm'],
+'ヤマメ':['UL〜L','4〜6ft','2〜7g','1000〜2000番','スピニング・ハイギア','ミノー4〜6cm／スプーン2〜7g','PE使用時50〜100cm'],
+'イワナ':['UL〜L','4〜6ft','2〜7g','1000〜2000番','スピニング・ハイギア','ミノー4〜6cm／スプーン2〜7g','PE使用時50〜100cm']};
+function spec09(p){let a=[...(p.method==='ルアー釣り'?lure09[p.fish]||[]:gear09[p.method]||[])];if(!a.length)return null;let note='一般的な入門〜標準構成の参考例。';let ranges=lineSpec08(p)?.[0]||[],leader=lineSpec08(p)?.[1]||'対象魚に合わせる';
+if(p.method==='ショアジギング'&&p.fish==='ブリ'){a[0]='MH〜H';a[1]='9.6〜11ft';a[2]='40〜80g';a[5]='メタルジグ40〜80g';}
+if(p.method==='ルアー釣り'&&p.fish==='シーバス'&&p.place==='砂浜'){a[1]='9.6〜11ft';a[0]='M〜MH';a[2]='15〜40g';a[3]='3000〜4000番';a[5]='ミノー9〜14cm／ジグ15〜40g';ranges=[['PE',1,1.5]];leader='フロロ4〜6号';}
+if(p.method==='ルアー釣り'&&p.fish==='シーバス'&&p.place==='磯'){a[1]='10〜11ft';a[0]='M〜MH';a[2]='15〜45g';a[3]='4000〜5000番';a[5]='ミノー12〜14cm／ジグ15〜45g';ranges=[['PE',1.5,2]];leader='フロロ6〜8号';}
+if(p.place==='船'&&p.method!=='タイラバ'){note='船釣り専用の仕様は未整備。下記は陸釣り等の参考例で、船宿指定を優先してください。';}
+else if(p.method==='タイラバ'&&p.place!=='船'){note='通常は船釣り向けの構成です。選択した釣り場との適合は未確認。';}
+else if(p.place==='磯')note+=' 根ズレ・足場・取り込み条件を確認。';else if(p.place==='砂浜')note+=' 遠投距離と波の条件を確認。';else if(p.place==='河川')note+=' 流速と障害物を確認。';else if(p.place==='漁港'||p.place==='堤防')note+=' 足元の水深・障害物を確認。';return {a,note,ranges,leader};}
+function lb09(r){if(r[0]==='PE'||r[0]==='エステル')return 'lbは製品表示を確認';return '約'+(r[1]*4).toFixed(1).replace(/\.0$/,'')+'〜'+(r[2]*4).toFixed(1).replace(/\.0$/,'')+'lb級（参考）';}
+const rec08_09=recommendScreen;
+recommendScreen=function(){rec08_09();const s=spec09(planData);if(!s)return;const {a,note,ranges,leader}=s;const panels=[...app.querySelectorAll('.panel')];const add=(el,html)=>{if(el)el.insertAdjacentHTML('beforeend',html);};
+const replace=(el,prefix,val)=>{const p=[...el.querySelectorAll('p')].find(x=>x.textContent.startsWith(prefix));if(p)p.textContent=prefix+val;else add(el,`<p>${esc(prefix+val)}</p>`);};
+replace(panels[0],'長さの目安：',a[1]);replace(panels[0],'ルアー重量の目安：',a[2]);add(panels[0],`<p>硬さ・竿の規格：${esc(a[0])}</p>`);replace(panels[1],'番手の目安：',a[3]);add(panels[1],`<p>タイプ・ギア：${esc(a[4])}</p>`);add(panels[2],`<p>重量・サイズ：${esc(a[5])}</p><div class="reason">${esc(planData.place)}：${esc(note)}</div>`);
+const lp=panels.find(e=>e.querySelector('h3')?.textContent.includes('メインライン'));if(lp){lp.innerHTML=`<h3>🧵 メインライン（道糸・水中糸）</h3>${ranges.map(r=>`<p><b>${esc(lineText08(r))}</b><br><small>${esc(lb09(r))}</small></p>`).join('')}<h3>リーダー・ハリス</h3><p>${esc(leader)}</p><p>長さ：${esc(a[6])}</p><small>号数とlbは一律換算できません。製品の表示強度を優先。</small>`;}
+const match=panels.find(e=>e.querySelector('b')?.textContent==='ライン（道糸）');if(match){const owned=read('tackle').filter(t=>t.category==='ライン'||(t.category==='リール'&&t.line));match.innerHTML='<b>ライン（道糸）</b>'+ (owned.length?owned.map(t=>{const j=lineJudge08(t.line,ranges);return `<p>${esc(t.name)}：${esc(t.line||'未設定')}<br><small class="${j[0]}">${j[1]}</small></p>`}).join(''):'<p class="bad">未登録</p>');}
+for(const [i,cat] of ['ロッド','リール'].entries()){const el=panels.find(e=>e.querySelector('b')?.textContent===cat);if(!el||a[3]==='不要'&&i===1)continue;const owned=read('tackle').filter(t=>t.category===cat);if(!owned.length)continue;el.innerHTML=`<b>${cat}</b>`+owned.map(t=>{let checks=[];if(i===0){let m=a[2].match(/^(\d+(?:\.\d+)?)〜(\d+(?:\.\d+)?)g$/);if(m&&t.min!==''&&t.max!==''&&t.min!=null&&t.max!=null)checks.push(judge(t,[null,null,null,null,null,+m[1],+m[2]],0));if(t.power&&t.power!=='未設定'&&/^(UL|L|ML|M|MH|H|XH)〜(UL|L|ML|M|MH|H|XH)$/.test(a[0])){let order=['UL','L','ML','M','MH','H','XH'],[lo,hi]=a[0].split('〜');checks.push(order.indexOf(t.power)>=order.indexOf(lo)&&order.indexOf(t.power)<=order.indexOf(hi)?['good','硬さの目安内']:['warn','硬さの目安と異なる']);}}else{checks.push(judge(t,[null,null,null,null,a[3]],1));if(t.reelType&&/^(スピニング|ベイト)/.test(a[4]))checks.push(a[4].startsWith(t.reelType)?['good','リールタイプ一致']:['warn','リールタイプ要確認']);}return `<p>${esc(t.name)}<br>${(checks.length?checks:[['warn','詳細未判定']]).map(j=>`<small class="${j[0]}">${j[1]}</small><br>`).join('')}</p>`;}).join('');}
+};
+const checklist08_09=checklistItems;checklistItems=function(p){const items=checklist08_09(p),s=spec09(p);if(s){const l=items.find(x=>x.id==='line');if(l)l.name='ライン：'+s.ranges.map(lineText08).join(' / ')+'；リーダー・ハリス：'+s.leader;}return items;};
+const settings08_09=settings;settings=function(){settings08_09();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 0.9';});};
+document.querySelector('footer').textContent='釣具なび（TACKLE NAVI） | Ver. 0.9';
+
+/* Ver.1.0 リール装着ライン管理 */
+const kinds10=['未設定','PE','ナイロン','フロロ','エステル','その他'];
+function current10(t){return t.spools10?.find(s=>s.id===t.active10)||{name:'本体スプール',legacy:t.line||''};}
+function desc10(s){return [s.kind==='未設定'?'':s.kind,s.gou? s.gou+'号':'',s.lb?s.lb+'lb':'',s.m?s.m+'m':''].filter(Boolean).join(' / ')||s.legacy||'未設定';}
+function reelPanel10(t,i){let s=current10(t);return `<div class="reason"><b>現在巻いているライン：${esc(desc10(s))}</b><p>スプール：${esc(s.name)}</p><p>${esc(s.maker||'')} ${esc(s.product||'')}</p><p>巻き替え日：${esc(s.date||'未設定')}</p><p>リーダー：${esc([s.leaderKind,s.leaderGou?s.leaderGou+'号':'',s.leaderLength?s.leaderLength+'m':''].filter(Boolean).join(' / ')||'未設定')}</p></div><button class="sub" onclick="spoolsScreen10(${i})">ライン・スプール管理</button>`;}
+const tackle09_10=tackle;
+tackle=function(){tackle09_10();read('tackle').forEach((t,i)=>{if(t.category!=='リール')return;let b=app.querySelector(`button[onclick="tackleForm(${i})"]`);if(b)b.insertAdjacentHTML('beforebegin',reelPanel10(t,i));});};
+function ensure10(t){if(!Array.isArray(t.spools10)||!t.spools10.length){t.spools10=[{id:'main',name:'本体スプール',legacy:t.line||'',history:[]}];t.active10='main';}return t;}
+function spoolsScreen10(i){let t=read('tackle')[i];if(!t||t.category!=='リール')return tackle();ensure10(t);show(back('tackle')+`<h2>ライン・スプール管理</h2><p>${esc(t.name)}</p>`+t.spools10.map((s,j)=>`<div class="panel"><h3>${esc(s.name)} ${s.id===t.active10?'（装着中）':''}</h3><p>${esc(desc10(s))}</p><p>${esc(s.maker||'')} ${esc(s.product||'')}</p><p>巻き替え日：${esc(s.date||'未設定')}</p><p>リーダー：${esc([s.leaderKind,s.leaderGou?s.leaderGou+'号':'',s.leaderLength?s.leaderLength+'m':''].filter(Boolean).join(' / ')||'未設定')}</p><button class="sub" onclick="spoolForm10(${i},${j},true)">巻き替える</button><button class="sub" onclick="spoolForm10(${i},${j},false)">情報を編集</button>${s.id!==t.active10?`<button class="sub" onclick="activate10(${i},${j})">装着する</button><button class="sub" onclick="deleteSpool10(${i},${j})">削除</button>`:''}<details><summary>巻き替え履歴（${(s.history||[]).length}件）</summary>${(s.history||[]).slice().reverse().map(h=>`<p>${esc(h.date||'日付未設定')}：${esc(desc10(h))} ${esc(h.maker||'')} ${esc(h.product||'')}</p>`).join('')}</details></div>`).join('')+`<button class="primary" onclick="spoolForm10(${i},-1,false)">＋ 予備スプールを登録</button>`);}
+function spoolForm10(i,j,replace){let t=read('tackle')[i];if(!t)return tackle();ensure10(t);let s=t.spools10[j]||{};show(`<button class="back" onclick="spoolsScreen10(${i})">← 戻る</button><h2>${replace?'ライン巻き替え':'スプール情報登録・編集'}</h2><form class="panel" onsubmit="saveSpool10(event,${i},${j},${replace})">${field('スプール名','sname10',s.name||'','text','required')}${s.legacy?`<p>従来の登録：${esc(s.legacy)}</p>`:''}<label>ライン種類<select id="skind10">${options(kinds10,s.kind||'未設定')}</select></label>${field('ラインメーカー','smaker10',s.maker)}${field('商品名','sproduct10',s.product)}${field('太さ（号）','sgou10',s.gou,'number','min="0.01" step="any"')}${field('製品表示強度（lb）','slb10',s.lb,'number','min="0.01" step="any"')}${field('巻き量（m）','sm10',s.m,'number','min="1" step="any"')}${field('巻き替え日','sdate10',replace?today():s.date,'date')}<h3>ショックリーダー</h3><label>素材<select id="sleaderKind10">${options(['未設定','フロロ','ナイロン','PE','その他'],s.leaderKind||'未設定')}</select></label>${field('太さ（号）','sleaderGou10',s.leaderGou,'number','min="0.01" step="any"')}${field('長さ（m）','sleaderLength10',s.leaderLength,'number','min="0.01" step="any"')}<button class="primary">保存する</button></form>`);}
+function saveSpool10(e,i,j,replace){e.preventDefault();let a=read('tackle'),t=a[i];if(!t)return tackle();ensure10(t);let old=t.spools10[j]||{},s={...old,id:old.id||('s'+Date.now()),history:[...(old.history||[])]};for(let k of ['name','kind','maker','product','gou','lb','m','date','leaderKind','leaderGou','leaderLength'])s[k]=value('s'+k+'10');if(s.leaderKind==='未設定')s.leaderKind='';if(replace&&(old.kind&&old.kind!=='未設定'||old.legacy)){let {history,...snapshot}=old;s.history.push(snapshot);}if(s.kind!=='未設定'&&s.gou)s.legacy='';if(j<0)t.spools10.push(s);else t.spools10[j]=s;if(t.active10===s.id)t.line=desc10(s);if(write('tackle',a))spoolsScreen10(i);}
+function activate10(i,j){let a=read('tackle'),t=a[i];if(!t)return tackle();ensure10(t);let s=t.spools10[j];if(!s)return;t.active10=s.id;t.line=desc10(s);if(write('tackle',a))spoolsScreen10(i);}
+function deleteSpool10(i,j){let a=read('tackle'),t=a[i];if(!t)return tackle();ensure10(t);if(t.spools10[j]?.id===t.active10||!confirm('予備スプールと履歴を削除しますか？'))return;t.spools10.splice(j,1);if(write('tackle',a))spoolsScreen10(i);}
+const saveTackle09_10=saveTackle;
+saveTackle=function(e,i){e.preventDefault();let min=value('min'),max=value('max');if(min!==''&&max!==''&&Number(min)>Number(max)){alert('最小重量は最大重量以下にしてください');return;}let a=read('tackle'),old=a[i]||{},t={...old};for(let k of ['category','maker','name','length','power','min','max','size','line','reelType','memo'])t[k]=value(k);if(t.category==='リール'){if(old.spools10)t.line=desc10(current10(old));else ensure10(t);}if(i<0)a.push(t);else a[i]=t;if(write('tackle',a)){if(t.category==='リール')spoolsScreen10(i<0?a.length-1:i);else tackle();}};
+const specFields09_10=specFields;specFields=function(t={}){specFields09_10(t);if(value('category')==='リール'&&t.spools10){let el=document.getElementById('line');if(el){el.readOnly=true;el.value=desc10(current10(t));el.insertAdjacentHTML('afterend','<small>装着ラインの変更はライン・スプール管理から行えます。</small>');}}};
+function judgeLine10(s,ranges){if(s.kind&&s.kind!=='未設定'&&s.gou){let n=Number(s.gou);return ranges.some(r=>r[0]===s.kind&&n>=r[1]&&n<=r[2])?['good','装着ライン：推奨範囲内']:['warn','装着ライン：変更を検討'];}if(s.legacy){let j=lineJudge08(s.legacy,ranges);return [j[0],'装着ライン：'+j[1]];}return ['warn','装着ライン：情報不足'];}
+const rec09_10=recommendScreen;recommendScreen=function(){rec09_10();let s=spec09(planData);if(!s||s.a[3]==='不要')return;let reels=read('tackle').filter(t=>t.category==='リール');let panel=[...app.querySelectorAll('.panel')].find(e=>e.querySelector('b')?.textContent==='リール');if(panel){let rows=[...panel.querySelectorAll('p')];reels.forEach((t,i)=>{let c=current10(t),j=judgeLine10(c,s.ranges);if(rows[i])rows[i].insertAdjacentHTML('beforeend',`<br><small>${esc(desc10(c))}（装着中）</small><br><small class="${j[0]}">${esc(j[1])}</small>`);});}let match=[...app.querySelectorAll('.panel')].find(e=>e.querySelector('b')?.textContent==='ライン（道糸）');if(match){let lines=read('tackle').filter(t=>t.category==='ライン');match.innerHTML='<b>予備ライン（単体登録）</b>'+ (lines.length?lines.map(t=>{let j=lineJudge08(t.line,s.ranges);return `<p>${esc(t.name)}：${esc(t.line)}<br><small class="${j[0]}">${esc(j[1])}</small></p>`;}).join(''):'<p>単体登録なし</p>')+'<small>装着中のラインはリール欄で判定。リーダー・強度・巻き量は未判定。</small>';}};
+const settings09_10=settings;settings=function(){settings09_10();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 1.0';});};
+backup=function(){let blob=new Blob([JSON.stringify({version:'1.0',tackle:read('tackle'),plans:read('plans'),catches:read('catches')},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='tackle-navi-backup-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+document.querySelector('footer').textContent='釣具なび（TACKLE NAVI） | Ver. 1.0';
 
 home();
 </script>
