@@ -42,11 +42,29 @@ small{color:#52748c}
 .diag15card summary::-webkit-details-marker{display:none}.diag15card summary:after{content:'詳細を見る ▾';font-size:11px;color:#52748c;margin-top:auto}.diag15card[open] summary:after{content:'閉じる ▴'}
 .diag15card .detail15{padding:0 12px 10px;border-top:1px solid #e2edf4;font-size:13px}.diag15card .detail15 p{margin:10px 0}.diag15status{font-weight:bold;font-size:16px}.diag15counts{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;gap:4px;background:#eef5fa;padding:10px;border-radius:10px;font-size:12px}.diag15counts strong{display:block;font-size:24px}.diag15bar{display:flex;height:7px;border-radius:8px;overflow:hidden;margin-top:8px}.diag15bar span{display:block}.diag15name{font-weight:bold;font-size:15px}
 </style>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><style>#map17{height:300px;width:100%;border-radius:10px;z-index:0}#map17 .leaflet-control button{width:auto}</style></head>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><style>#map17{height:300px;width:100%;border-radius:10px;z-index:0}#map17 .leaflet-control button{width:auto}</style><style id="theme22">
+:root{--navy:#12568a;--pink:#ffc4d6;--bg:#edf5fa;--ink:#123e60;--line:#d6e5ef}
+body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans",sans-serif;line-height:1.55}
+header{background:var(--navy);padding:16px 12px;font-size:clamp(20px,5vw,26px);cursor:pointer}
+main{padding:clamp(12px,4vw,22px);max-width:650px}h2{font-size:clamp(19px,5vw,24px);line-height:1.4;margin-bottom:16px}h3{line-height:1.4}
+.menu,.stats{gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.tile,.panel,.stat{border:1px solid var(--line);border-radius:16px;box-shadow:0 2px 8px #12568a0b;min-width:0}
+.tile{color:var(--navy);padding:16px 8px;min-height:100px;overflow-wrap:anywhere;line-height:1.4}
+.tile span{margin:0 auto 8px;background:#edf5fa;border-radius:12px;width:48px;height:48px;display:grid;place-items:center;font-size:26px}
+.primary{background:var(--pink);color:var(--ink);border:1px solid #efacc2;min-height:52px;padding:14px 12px;line-height:1.4;font-size:17px}
+.back,.sub{min-height:44px;padding:10px 14px;border-radius:12px;line-height:1.4;color:var(--navy);font-size:14px}
+.back{background:#fff;border-color:var(--line);font-weight:600}
+.panel{padding:16px;margin-bottom:14px}.panel h3:first-child{margin-top:0}.panel li{margin-bottom:8px}
+input:not([type=checkbox]):not([type=radio]),select,textarea{min-height:48px;border-radius:10px;border-color:#b9cfdf;color:var(--ink);font-size:16px;max-width:100%}
+input[type=checkbox],input[type=radio]{width:20px;height:20px;margin:0 8px 0 0;vertical-align:middle;accent-color:var(--navy)}
+button,a,input,select,textarea,summary{-webkit-tap-highlight-color:#ffc4d655}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #12568a;outline-offset:3px}
+button:active{filter:brightness(.96)}a{color:var(--navy);text-underline-offset:3px}footer{color:#52748c;padding:16px 12px 24px}.progress div{background:var(--navy)}.diag15card summary{min-height:120px}.hero15 h2{font-size:clamp(12px,4.4vw,22px)}
+@media(max-width:360px){.menu,.stats,.diag15grid{gap:8px}.tile{font-size:14px}.panel{padding:12px}.back,.sub{padding:10px}}
+</style></head>
 <body>
-<header onclick="home()">🎣 TACKLE NAVI</header>
+<header role="button" tabindex="0" aria-label="トップ画面へ戻る" onclick="home()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();home()}">🎣 TACKLE NAVI</header>
 <main id="app"></main>
-<footer>TACKLE NAVI | Ver. 0.3</footer>
+<footer>TACKLE NAVI | Ver. 2.2</footer>
 <script>
 const app=document.getElementById('app');
 let planData={};
@@ -140,7 +158,7 @@ return items.map(x=>`<option ${x===current?'selected':''}>${esc(x)}</option>`).j
 function home(){
 show(`
 <div class="hero hero15">
-<svg viewBox="0 0 320 55" width="100%" height="55" aria-hidden="true"><circle cx="160" cy="23" r="19" fill="#f4d49a"/><path d="M0 34 Q40 24 80 34 T160 34 T240 34 T320 34 V49 H0Z" fill="#c4e1ed"/><path d="M0 43 Q40 33 80 43 T160 43 T240 43 T320 43 V55 H0Z" fill="#8bbfd4"/></svg>
+<svg viewBox="0 0 320 55" width="100%" height="55" aria-hidden="true"><circle cx="160" cy="23" r="19" fill="#ffc4d6"/><path d="M0 34 Q40 24 80 34 T160 34 T240 34 T320 34 V49 H0Z" fill="#c4e1ed"/><path d="M0 43 Q40 33 80 43 T160 43 T240 43 T320 43 V55 H0Z" fill="#8bbfd4"/></svg>
 <h2>次の釣りをもっと楽しく。</h2>
 <p>釣りの計画から釣果の記録まで。</p>
 </div>
@@ -3160,8 +3178,8 @@ return `<div class="panel" id="diagnosis13"><h3>🎣 マイタックル適合チ
 
 const recBase13=recommendScreen;recommendScreen=function(){recBase13();let h=[...app.querySelectorAll('h3')].find(x=>x.textContent==='マイタックルとの照合');if(h){let old=h.nextElementSibling;while(old&&old.classList.contains('panel')){let next=old.nextElementSibling;old.remove();old=next;}h.insertAdjacentHTML('afterend',diagnosis13(planData));h.remove();}};
 const settingsBase13=settings;settings=function(){settingsBase13();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 1.3';});};
-backup=function(){let blob=new Blob([JSON.stringify({version:'2.0',tackle:read('tackle'),plans:read('plans'),catches:read('catches')},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='tackle-navi-backup-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
-document.querySelector('footer').textContent='釣具なび（TACKLE NAVI） | Ver. 2.0';
+backup=function(){let blob=new Blob([JSON.stringify({version:'2.2',tackle:read('tackle'),plans:read('plans'),catches:read('catches')},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='tackle-navi-backup-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+document.querySelector('footer').textContent='釣具なび（TACKLE NAVI） | Ver. 2.2';
 
 /* Ver.1.4 common selection controls */
 const makers14='シマノ,ダイワ,メジャークラフト,アブガルシア,ヤマガブランクス,がまかつ,ジャッカル,テイルウォーク,オリムピック,天龍,宇崎日新,デュエル,サンライン,バリバス,よつあみ,東レ,クレハ,ゴーセン,オーナー,ハヤブサ,メガバス,ブルーブルー,アイマ,デプス,エバーグリーン,ラパラ'.split(',');
@@ -3176,7 +3194,7 @@ const save14=saveTackle;saveTackle=function(e,i){let keys=['rodType14','gear14',
 const spool14=spoolForm10;spoolForm10=function(...a){spool14(...a);pick14('smaker10',makers14);pick14('skind10',kinds10);pick14('sleaderKind10',['フロロ','ナイロン','PE','エステル']);pick14('slb10',['1','2','3','4','5','6','8','10','12','14','16','18','20','22','25','30','35','40','50','60','80','100','120'],'lb');pick14('sm10',['25','50','75','100','120','150','200','250','300','400','500','600','1000'],'m');pick14('sleaderLength10',['0.3','0.5','0.8','1','1.2','1.5','2','2.5','3','4','5','10'],'m');};
 const catch14=catchForm;catchForm=function(c={},i=-1){catch14(c,i);pick14('fish',Object.keys(db));pick14('method',Object.keys(methods));pick14('count',Array.from({length:51},(_,i)=>String(i)),'匹');pick14('length',Array.from({length:150},(_,i)=>String(i+1)),'cm');let el=document.getElementById('location');el.insertAdjacentHTML('afterend',extra14('釣り場の種類','catchPlace14',c.place14));pick14('catchPlace14',['堤防','漁港','砂浜','磯','船','河口','河川','湖','池','管理釣り場']);};
 const saveCatch14=saveCatch;saveCatch=function(e,i){let place=value('catchPlace14'),w=write;write=function(k,a){if(k==='catches')a[i<0?a.length-1:i].place14=place;return w(k,a);};try{return saveCatch14(e,i);}finally{write=w;}};
-const settings14=settings;settings=function(){settings14();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 2.0';});};
+const settings14=settings;settings=function(){settings14();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 2.2';});};
 
 
 
@@ -3243,6 +3261,29 @@ function assessment20(p,w,m,d){
  return `<div class="panel"><h3>釣行条件の参考評価</h3><p style="color:${colors[summary]};font-weight:bold;font-size:20px">${names[summary]}</p>${warnings.length?`<p class="warn">注意：${esc(warnings.join('・'))}の予報があります。</p>`:''}<p>比較的穏やかな時間帯：${best?best[0].t+'〜'+best.at(-1).t+'（各時刻の予報）':'該当なし／データ不足'}</p><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px">${rows.map(r=>`<div style="text-align:center;font-size:11px"><span>${r.t}</span><div style="background:${colors[r.level]};color:white;padding:7px 0;border-radius:4px">${['穏','注意','見送','不明'][r.level]}</div></div>`).join('')}</div><p>日の出：${esc(d?.sunrise?.[0]?.slice(11)||'未取得')} ／ 日の入り：${esc(d?.sunset?.[0]?.slice(11)||'未取得')}</p><small>釣り場：${esc(p.place||'未設定')}。独自の参考基準であり安全判定ではありません。${river?'河川水位・上流の雨は未評価。増水時は近づかないでください。':''}風向と地形、現地の波、警報・注意報、雷の実況は別途確認してください。夜間の足場・視界も未評価です。</small><details><summary>評価基準・時間別理由</summary><p>風速 ${limits[0]} / ${limits[1]} m/s、突風 ${limits[2]} / ${limits[3]} m/s${sea?'、波高 '+limits[4]+' / '+limits[5]+' m':''}（注意／見送り目安）。</p>${rows.map(r=>`<p>${r.t} ${names[r.level]} ${esc(r.reasons.join('・'))}</p>`).join('')}</details><p><a href="https://www.jma.go.jp/bosai/warning/" target="_blank" rel="noopener">気象庁の警報・注意報を確認</a></p></div>`;
 }
 function shadeTide20(el){let svg=el.querySelector('svg');if(!svg)return;svg.querySelectorAll('.mazume20').forEach(n=>n.remove());let old=el.querySelector('.sun20');if(old)old.remove();let times=[el.dataset.sunrise,el.dataset.sunset];if(!times.every(Boolean))return;for(let t of times){let [h,m]=t.slice(11,16).split(':').map(Number),a=Math.max(0,h+m/60-0.5),b=Math.min(23,h+m/60+0.5);if(b<=a)continue;let r=document.createElementNS('http://www.w3.org/2000/svg','rect');r.setAttribute('class','mazume20');r.setAttribute('x',32+a*270/23);r.setAttribute('y',15);r.setAttribute('width',(b-a)*270/23);r.setAttribute('height',100);r.setAttribute('fill','#e5a72c');r.setAttribute('opacity','.25');svg.prepend(r);}let note=document.createElement('p');note.className='sun20';note.textContent='黄色：朝・夕マズメの目安（日の出 '+times[0].slice(11,16)+'／日の入り '+times[1].slice(11,16)+' の前後30分）';svg.after(note);}
+
+/* Ver.2.1 cooking guide: conservative, explicit fish-name matching */
+const food21={};
+function addFood21(names,style,dishes,note=''){for(const n of names.split(' '))food21[n]={style,dishes,note};}
+addFood21('アジ マアジ','round','アジフライ・塩焼き・南蛮漬け','ゼイゴを取り除く。');
+addFood21('サバ マサバ ゴマサバ','round','味噌煮・塩焼き・竜田揚げ','低温管理を徹底。温度管理が悪いと加熱でも除去できないヒスタミンのリスクがあります。');
+addFood21('ブリ ワカシ イナダ ワラサ ハマチ カンパチ ヒラマサ','round','照り焼き・塩焼き・煮付け');
+addFood21('シーバス スズキ マダイ クロダイ メジナ','round','塩焼き・ムニエル・蒸し物');
+addFood21('メバル カサゴ キジハタ アカハタ マハタ アイナメ','round','煮付け・唐揚げ・塩焼き','硬いヒレや棘に注意。');
+addFood21('ヒラメ カレイ マゴチ','flat','ムニエル・唐揚げ・煮付け','ヒラメ・カレイは五枚おろしが一般的。マゴチは頭や棘に注意。');
+addFood21('キス シロギス ハゼ マハゼ','small','天ぷら・唐揚げ');
+addFood21('イワシ マイワシ カタクチイワシ サッパ','small','蒲焼き・唐揚げ・煮付け');
+addFood21('サワラ サゴシ カマス タチウオ','round','塩焼き・西京焼き・ムニエル','鋭い歯に注意。');
+addFood21('アオリイカ スルメイカ ヤリイカ ケンサキイカ コウイカ','squid','炒め物・煮物・天ぷら');
+addFood21('アユ ヤマメ イワナ ニジマス アマゴ','small','塩焼き・唐揚げ','淡水魚は生食せず十分に加熱。');
+const steps21={round:['ウロコを落とし、頭・内臓を除く。','腹の汚れを洗い、水気を拭く。','背骨に沿って左右の身を外す（三枚おろし）。','腹骨・小骨を取り、料理に合わせて切り、十分に加熱する。'],flat:['魚種に合うおろし方を確認する。','ウロコ・頭・内臓を除き、水気を拭く。','骨に沿って身を外し、小骨を確認する。','料理に合わせて切り、十分に加熱する。'],small:['ウロコがあれば落とし、頭・内臓を除く。','腹を洗って水気を拭く。','必要に応じて開き、骨を除く。','中心まで十分に加熱する。'],squid:['胴から足と内臓を外す。','軟骨・くちばし・目を除く。','胴と足を洗い、水気を拭いて切る。','中心まで十分に加熱する。']};
+let foodBack21=()=>home();
+function foodOpen21(name,returnTo){foodBack21=returnTo;foodScreen21(name);}
+function foodScreen21(name){const f=Object.hasOwn(food21,name)?food21[name]:null;const blocked=/フグ|アイゴ|ゴンズイ|オコゼ|ミノカサゴ|ソウシハギ|ウツボ/.test(name);const yt=q=>'https://www.youtube.com/results?search_query='+encodeURIComponent(name+' '+q);show(back('foodReturn21')+'<h2>🍳 '+esc(name||'魚')+'の捌き方・料理</h2><div class="panel"><h3>食用の注意</h3><p>魚種を確実に同定し、採捕場所の食用制限を確認してください。釣った魚は原則として十分に加熱してください。</p>'+ (blocked?'<p class="bad">毒や危険な棘などの可能性があるため、このアプリでは調理を案内しません。フグは自己調理しないでください。</p>':!f?'<p class="warn">この魚名の個別調理情報は未確認です。食用可否を専門家に確認するまで調理しないでください。</p>':'<p>'+esc(f.note)+'</p>')+'</div>'+(!blocked&&f?'<div class="panel"><h3>捌き方の基本</h3><ol>'+steps21[f.style].map(s=>'<li>'+esc(s)+'</li>').join('')+'</ol><a href="'+esc(yt('捌き方'))+'" target="_blank" rel="noopener">YouTubeで捌き方を検索</a></div><div class="panel"><h3>おすすめ料理</h3><p>'+esc(f.dishes)+'</p><a href="'+esc(yt('加熱料理 レシピ'))+'" target="_blank" rel="noopener">YouTubeで料理を検索</a></div><div class="panel"><h3>締め方・持ち帰り方</h3><p>魚種に適した締め方を経験者に確認し、速やかに氷入りのクーラーで冷却。清潔な道具で早めに内臓を除き、低温で保管してください。鮮度や温度管理に不安がある魚は食べないでください。</p></div>':'')+'<div class="panel"><h3>食中毒予防</h3><p>酢・塩・わさびではアニサキス対策になりません。内臓の生食は避け、十分に加熱してください。</p><a href="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000042953.html" target="_blank" rel="noopener">厚生労働省：アニサキス予防</a></div><small>調理情報は参考例。動画は検索結果であり個別に監修していません。</small>');}
+function foodReturn21(){foodBack21();}
+function foodButton21(parent,name,returnTo){const b=document.createElement('button');b.className='sub';b.textContent='🍳 捌き方・料理を見る';b.onclick=()=>foodOpen21(name,returnTo);parent.appendChild(b);}
+const methodBase21=methodScreen;methodScreen=function(){methodBase21();foodButton21(app,planData.fish,methodScreen);};
+const albumBase21=album;album=function(){albumBase21();app.querySelectorAll('button[onclick^="editCatch("]').forEach(b=>{const i=Number(b.getAttribute('onclick').match(/\d+/)[0]);const c=read('catches')[i];if(c)foodButton21(b.parentElement,c.fish,album);});};
 
 home();
 </script>
