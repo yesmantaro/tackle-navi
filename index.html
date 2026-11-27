@@ -3,7 +3,13 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#075b99">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
 <title>TACKLE NAVI</title>
 <style>
 *{box-sizing:border-box}
@@ -60,11 +66,22 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;margin:0 8px 0 0;v
 button,a,input,select,textarea,summary{-webkit-tap-highlight-color:#ffc4d655}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #12568a;outline-offset:3px}
 button:active{filter:brightness(.96)}a{color:var(--navy);text-underline-offset:3px}footer{color:#52748c;padding:16px 12px 24px}.progress div{background:var(--navy)}.diag15card summary{min-height:120px}.hero15 h2{font-size:clamp(12px,4.4vw,22px)}
 @media(max-width:360px){.menu,.stats,.diag15grid{gap:8px}.tile{font-size:14px}.panel{padding:12px}.back,.sub{padding:10px}}
+</style><style id="theme23">
+:root{--navy:#075b99;--pink:#ffbf47;--bg:#edf6fc;--ink:#163e60;--line:#cfe1ee}
+body{background:var(--bg);color:var(--ink)}
+header{background:#075b99;color:#fff}
+.primary{background:#ffbf47;color:#163e60;border:1px solid #e8a82d}
+.tile,.back,.sub,a{color:#075b99}
+.tile span{background:#e4f3fc}
+.hero{background:linear-gradient(135deg,#167db4,#075b99)}
+.progress div{background:#075b99}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline-color:#075b99}
+@media(display-mode:standalone){body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)} }
 </style></head>
 <body>
 <header role="button" tabindex="0" aria-label="トップ画面へ戻る" onclick="home()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();home()}">🎣 TACKLE NAVI</header>
 <main id="app"></main>
-<footer>TACKLE NAVI | Ver. 2.2</footer>
+<footer>TACKLE NAVI | Ver. 2.5</footer>
 <script>
 const app=document.getElementById('app');
 let planData={};
@@ -3179,7 +3196,7 @@ return `<div class="panel" id="diagnosis13"><h3>🎣 マイタックル適合チ
 const recBase13=recommendScreen;recommendScreen=function(){recBase13();let h=[...app.querySelectorAll('h3')].find(x=>x.textContent==='マイタックルとの照合');if(h){let old=h.nextElementSibling;while(old&&old.classList.contains('panel')){let next=old.nextElementSibling;old.remove();old=next;}h.insertAdjacentHTML('afterend',diagnosis13(planData));h.remove();}};
 const settingsBase13=settings;settings=function(){settingsBase13();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 1.3';});};
 backup=function(){let blob=new Blob([JSON.stringify({version:'2.2',tackle:read('tackle'),plans:read('plans'),catches:read('catches')},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='tackle-navi-backup-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
-document.querySelector('footer').textContent='釣具なび（TACKLE NAVI） | Ver. 2.2';
+document.querySelector('footer').textContent='釣具なび（TACKLE NAVI） | Ver. 2.3';
 
 /* Ver.1.4 common selection controls */
 const makers14='シマノ,ダイワ,メジャークラフト,アブガルシア,ヤマガブランクス,がまかつ,ジャッカル,テイルウォーク,オリムピック,天龍,宇崎日新,デュエル,サンライン,バリバス,よつあみ,東レ,クレハ,ゴーセン,オーナー,ハヤブサ,メガバス,ブルーブルー,アイマ,デプス,エバーグリーン,ラパラ'.split(',');
@@ -3285,7 +3302,99 @@ function foodButton21(parent,name,returnTo){const b=document.createElement('butt
 const methodBase21=methodScreen;methodScreen=function(){methodBase21();foodButton21(app,planData.fish,methodScreen);};
 const albumBase21=album;album=function(){albumBase21();app.querySelectorAll('button[onclick^="editCatch("]').forEach(b=>{const i=Number(b.getAttribute('onclick').match(/\d+/)[0]);const c=read('catches')[i];if(c)foodButton21(b.parentElement,c.fish,album);});};
 
+
+/* Ver.2.4: 公開前のセキュリティ設計ガイド。外部送信やアカウント作成は行わない。 */
+const settingsBefore24 = settings;
+settings = function() {
+  settingsBefore24();
+  const panel = document.createElement('section');
+  panel.className = 'panel';
+  panel.innerHTML = `
+    <h3>🔒 データとセキュリティ</h3>
+    <p>現在の登録情報は、この端末のブラウザ内に保存されています。クラウド同期・ユーザー登録・課金機能はまだありません。</p>
+    <p>釣果写真や釣り場の位置情報は、将来の投稿機能で公開範囲を選べる設計にする予定です。現時点では投稿・共有機能は未実装です。</p>
+    <button class="sub" type="button" onclick="securityGuide24()">安全な利用方法・公開前の確認事項</button>
+  `;
+  app.appendChild(panel);
+  app.querySelectorAll('p').forEach(el => {
+    if (/^バージョン\s/.test(el.textContent.trim())) el.textContent = 'バージョン 2.4';
+  });
+};
+function securityGuide24() {
+  show(back('settings()') + `
+    <h2>🔒 データとセキュリティ</h2>
+    <div class="panel">
+      <h3>現在のデータ保存</h3>
+      <p>マイタックル・釣行プラン・釣果記録は端末内のブラウザ保存領域を利用しています。機種変更やブラウザデータ消去で失われる可能性があります。</p>
+      <p>端末を他人と共有する場合は、登録した写真やメモの取り扱いに注意してください。</p>
+      <button class="primary" type="button" onclick="backup()">データをバックアップする</button>
+      <p><small>バックアップファイルには釣果写真・メモ・釣り場などの情報が含まれる場合があります。安全な場所に保管し、公開しないでください。</small></p>
+    </div>
+    <div class="panel">
+      <h3>今後の公開版で実装する安全対策</h3>
+      <ul>
+        <li>認証サービスによるログインとアカウント削除</li>
+        <li>サーバー側のアクセス権限検証とデータ分離</li>
+        <li>釣り場の詳細位置は初期設定で非公開</li>
+        <li>投稿写真の位置情報（EXIF）削除</li>
+        <li>投稿の通報・削除・ブロック機能</li>
+        <li>Android・iOSそれぞれの公式アプリ内課金</li>
+        <li>公開前の脆弱性診断・プライバシーポリシー確認</li>
+      </ul>
+      <p><small>上記は設計方針で、現時点で実装済みという意味ではありません。ストア審査の通過や安全性を保証するものではありません。</small></p>
+    </div>
+  `);
+}
+
+
+/* Ver.2.5: ローカルバックアップ復元（明示確認・形式検証・失敗時ロールバック） */
+const settingsBefore25=settings;
+settings=function(){
+  settingsBefore25();
+  const panel=document.createElement('section');
+  panel.className='panel';
+  panel.innerHTML=`<h3>📦 データを復元する</h3>
+    <p>釣具なびのバックアップ（JSON）から、タックル・釣行プラン・釣果記録を復元できます。</p>
+    <p><small>復元すると現在の登録データは上書きされます。先に「データをバックアップする」で現在の内容を保存してください。</small></p>
+    <label for="restoreFile25">バックアップファイルを選択</label>
+    <input id="restoreFile25" type="file" accept=".json,application/json" style="max-width:100%;margin:10px 0">
+    <button class="sub" type="button" onclick="restoreBackup25()">ファイルを確認して復元</button>`;
+  app.appendChild(panel);
+  app.querySelectorAll('p').forEach(el=>{
+    if(/^バージョン\s/.test(el.textContent.trim()))el.textContent='バージョン 2.5';
+  });
+};
+async function restoreBackup25(){
+  const input=document.getElementById('restoreFile25');
+  const file=input&&input.files&&input.files[0];
+  if(!file){alert('バックアップファイルを選択してください。');return;}
+  if(file.size>15*1024*1024){alert('ファイルが大きすぎます（15MBまで）。');return;}
+  let data;
+  try{data=JSON.parse(await file.text());}
+  catch(e){alert('JSONファイルを読み込めませんでした。');return;}
+  const keys=['tackle','plans','catches'];
+  if(!data||typeof data!=='object'||Array.isArray(data)||!keys.every(k=>Array.isArray(data[k]))){
+    alert('釣具なびのバックアップ形式ではありません。');return;
+  }
+  if(keys.some(k=>data[k].length>10000||data[k].some(v=>!v||typeof v!=='object'||Array.isArray(v)))){
+    alert('データの形式または件数が不正です。');return;
+  }
+  const details=keys.map((k,i)=>['タックル','釣行プラン','釣果記録'][i]+'：'+data[k].length+'件').join('\n');
+  if(!confirm('次の内容で現在の登録データを上書きします。\n\n'+details+'\n\n現在のデータはバックアップ済みですか？'))return;
+  const previous={};
+  try{
+    keys.forEach(k=>previous[k]=localStorage.getItem(k));
+    // 3項目をすべて保存できる場合のみ完了とする。
+    keys.forEach(k=>localStorage.setItem(k,JSON.stringify(data[k])));
+  }catch(e){
+    keys.forEach(k=>{try{if(previous[k]===null)localStorage.removeItem(k);else if(previous[k]!==undefined)localStorage.setItem(k,previous[k]);}catch(_){} });
+    alert('復元に失敗しました。空き容量を確認してください。');return;
+  }
+  alert('復元しました。登録件数を確認してください。');settings();
+}
+
 home();
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('PWA cache unavailable',e)));}
 </script>
 </body>
 </html>
