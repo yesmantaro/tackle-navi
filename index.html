@@ -100,7 +100,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 <body>
 <header role="button" tabindex="0" aria-label="トップ画面へ戻る" onclick="home()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();home()}">🎣 TACKLE NAVI</header>
 <main id="app"></main>
-<footer>TACKLE NAVI | Ver. 2.8</footer>
+<footer>TACKLE NAVI | Ver. 2.9</footer>
 <script>
 const app=document.getElementById('app');
 let planData={};
@@ -380,6 +380,7 @@ function tackle(){
     <h2>マイタックル</h2>
     <p><small>表示順：ロッド → リール → ライン → その他</small></p>
     <button class="primary" onclick="tackleForm()">＋ タックルを登録</button>
+    <button class="sub" type="button" onclick="tackleSets29()">🎣 タックルセットを管理</button>
     <section class="panel tackle-tools28" aria-label="マイタックルの検索と絞り込み">
       <label for="tackleSearch28">メーカー名・商品名で検索</label>
       <input id="tackleSearch28" type="search" placeholder="例：シーバス、4000番、メーカー名" autocomplete="off" value="${esc(tackleQuery28)}" oninput="tackleQuery28=this.value;renderTackle28()">
@@ -621,7 +622,7 @@ show(back()+`
 <button class="primary" onclick="backup()">データをバックアップ</button>`)
 }
 function backup(){
-let data={version:'0.3',tackle:read('tackle'),plans:read('plans'),catches:read('catches')};
+let data={version:'0.3',tackle:read('tackle'),plans:read('plans'),catches:read('catches'),tackleSets:read('tackleSets')};
 let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
 let url=URL.createObjectURL(blob);
 let a=document.createElement('a');
@@ -3427,7 +3428,7 @@ settings=function(){
     <button class="sub" type="button" onclick="restoreBackup25()">ファイルを確認して復元</button>`;
   app.appendChild(panel);
   app.querySelectorAll('p').forEach(el=>{
-    if(/^バージョン\s/.test(el.textContent.trim()))el.textContent='バージョン 2.8';
+    if(/^バージョン\s/.test(el.textContent.trim()))el.textContent='バージョン 2.9';
   });
 };
 async function restoreBackup25(){
@@ -3445,7 +3446,9 @@ async function restoreBackup25(){
   if(keys.some(k=>data[k].length>10000||data[k].some(v=>!v||typeof v!=='object'||Array.isArray(v)))){
     alert('データの形式または件数が不正です。');return;
   }
-  const details=keys.map((k,i)=>['タックル','釣行プラン','釣果記録'][i]+'：'+data[k].length+'件').join('\n');
+  if(data.tackleSets!==undefined && (!Array.isArray(data.tackleSets)||data.tackleSets.length>10000||data.tackleSets.some(v=>!v||typeof v!=='object'||Array.isArray(v)))){alert('タックルセットの形式が不正です。');return;}
+  if(data.tackleSets!==undefined)keys.push('tackleSets');
+  const details=keys.map((k,i)=>['タックル','釣行プラン','釣果記録','タックルセット'][i]+'：'+data[k].length+'件').join('\n');
   if(!confirm('次の内容で現在の登録データを上書きします。\n\n'+details+'\n\n現在のデータはバックアップ済みですか？'))return;
   const previous={};
   try{
@@ -3458,6 +3461,81 @@ async function restoreBackup25(){
   }
   alert('復元しました。登録件数を確認してください。');settings();
 }
+
+
+/* Ver.2.9: タックルセット保存（端末内のみ、課金・共有なし） */
+function tackleSets29(){
+  const sets=read('tackleSets');
+  show(back('tackle')+`
+    <h2>🎣 タックルセット</h2>
+    <p>ロッド・リール・ラインなどを組み合わせて、釣り方別に保存できます。</p>
+    <button class="primary" type="button" onclick="tackleSetForm29()">＋ セットを作成</button>
+    ${sets.length ? sets.map((s,i)=>`
+      <div class="panel">
+        <h3>${esc(s.name)}</h3>
+        ${s.memo?`<p>${esc(s.memo)}</p>`:''}
+        <p>${(Array.isArray(s.items)?s.items:[]).map(t=>esc(t.category||'その他')+'：'+esc([t.maker,t.name].filter(Boolean).join(' '))).join('<br>')||'タックル未選択'}</p>
+        <button class="sub" type="button" onclick="tackleSetForm29(${i})">編集</button>
+        <button class="sub" type="button" onclick="deleteTackleSet29(${i})">削除</button>
+      </div>`).join(''):'<div class="panel">セットはまだありません。</div>'}
+    <p><small>セットはこの端末内に保存されます。元のタックルを編集しても、保存済みセットの表示内容は自動更新されません。</small></p>
+  `);
+}
+function tackleSetForm29(i=-1){
+  const current=read('tackleSets')[i]||{};
+  const items=read('tackle').filter(t=>t.category!=='仕掛け');
+  const chosen=Array.isArray(current.items)?current.items:[];
+  const selectedIds=chosen.map(t=>t._source29).filter(v=>Number.isInteger(v));
+  show(back('tackleSets29')+`
+    <h2>${i<0?'セットを作成':'セットを編集'}</h2>
+    <form class="panel" onsubmit="saveTackleSet29(event,${i})">
+      ${field('セット名','setName29',current.name||'','text','required maxlength="60"')}
+      <label>メモ<textarea id="setMemo29" maxlength="500">${esc(current.memo||'')}</textarea></label>
+      <h3>使用するタックル</h3>
+      ${items.length?items.map((t,j)=>`
+        <label style="display:flex;align-items:center;gap:10px;padding:8px 0">
+          <input type="checkbox" name="setGear29" value="${j}" ${selectedIds.includes(j)?'checked':''} style="width:auto">
+          <span>${esc(t.category||'その他')}：${esc([t.maker,t.name].filter(Boolean).join(' '))}</span>
+        </label>`).join(''):'<p>マイタックルに登録したアイテムがありません。</p>'}
+      <button class="primary" type="submit">セットを保存</button>
+    </form>`);
+}
+function saveTackleSet29(e,i){
+  e.preventDefault();
+  const name=value('setName29');
+  if(!name){alert('セット名を入力してください。');return;}
+  const items=read('tackle').filter(t=>t.category!=='仕掛け');
+  const selected=[...document.querySelectorAll('input[name="setGear29"]:checked')]
+    .map(el=>Number(el.value)).filter(n=>Number.isInteger(n)&&n>=0&&n<items.length);
+  if(!selected.length){alert('タックルを1件以上選んでください。');return;}
+  const set={name,memo:value('setMemo29'),items:selected.map(j=>({...items[j],_source29:j}))};
+  const sets=read('tackleSets');
+  if(i<0)sets.push(set);
+  else if(sets[i])sets[i]=set;
+  else {alert('編集対象が見つかりません。');return;}
+  if(write('tackleSets',sets))tackleSets29();
+}
+function deleteTackleSet29(i){
+  const sets=read('tackleSets');
+  if(!sets[i])return;
+  if(!confirm('「'+sets[i].name+'」を削除しますか？\n元のタックルは削除されません。'))return;
+  sets.splice(i,1);
+  if(write('tackleSets',sets))tackleSets29();
+}
+/* Ver.2.9: 旧バージョンのフッター表示を修正 */
+const homeBefore29=home;
+home=function(){
+  homeBefore29();
+  const footer=document.querySelector('footer');
+  if(footer)footer.textContent='釣具なび（TACKLE NAVI） | Ver. 2.9';
+};
+const settingsBefore29=settings;
+settings=function(){
+  settingsBefore29();
+  app.querySelectorAll('p').forEach(el=>{
+    if(/^バージョン\s/.test(el.textContent.trim()))el.textContent='バージョン 2.9';
+  });
+};
 
 home();
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('PWA cache unavailable',e)));}
