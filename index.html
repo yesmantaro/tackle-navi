@@ -2983,7 +2983,7 @@ backup=function(){
 
 let data={
 
-version:'0.7',
+version:'0.8',
 
 tackle:read('tackle'),
 
@@ -3019,6 +3019,42 @@ setTimeout(
 };
 
 /* Ver.0.7 追加コード終了 */
+
+
+/* Ver.0.8 推奨ライン */
+const lineDB08={"アジ|アジング": [[["PE", 0.2, 0.4], ["エステル", 0.2, 0.4]], "フロロ0.6〜1号"], "アジ|サビキ釣り": [[["ナイロン", 2.0, 3.0]], "仕掛けのハリス0.8〜2号"], "アジ|ウキ釣り": [[["ナイロン", 1.5, 2.5]], "フロロ0.8〜1.5号"], "サバ|サビキ釣り": [[["ナイロン", 2.0, 4.0]], "仕掛けのハリス1〜3号"], "サバ|ショアジギング": [[["PE", 1.0, 2.0]], "フロロ4〜8号"], "シーバス|ルアー釣り": [[["PE", 0.8, 1.5]], "フロロ4〜6号"], "シーバス|ウキ釣り": [[["ナイロン", 3.0, 5.0]], "フロロ3〜5号"], "ヒラメ|ルアー釣り": [[["PE", 1.0, 1.5]], "フロロ4〜6号"], "ヒラメ|泳がせ釣り": [[["PE", 2.0, 3.0], ["ナイロン", 4.0, 6.0]], "フロロ5〜8号"], "クロダイ|フカセ釣り": [[["ナイロン", 1.5, 2.5]], "フロロ1.2〜2号"], "クロダイ|チニング": [[["PE", 0.6, 1.0]], "フロロ2〜4号"], "メバル|メバリング": [[["PE", 0.2, 0.5], ["フロロ", 0.6, 1.0]], "PE使用時フロロ0.8〜1.5号"], "メバル|ウキ釣り": [[["ナイロン", 1.0, 2.0]], "フロロ0.8〜1.5号"], "イカ|エギング": [[["PE", 0.6, 1.0]], "フロロ2〜3号"], "イカ|ウキ釣り": [[["ナイロン", 2.0, 4.0]], "フロロ2〜4号（対象のイカによる）"], "キス|投げ釣り": [[["PE", 0.6, 1.5], ["ナイロン", 2.0, 4.0]], "オモリに合う力糸を使用"], "カサゴ|穴釣り": [[["ナイロン", 3.0, 5.0], ["フロロ", 3.0, 5.0]], "直結可・根ズレに注意"], "カサゴ|ルアー釣り": [[["PE", 0.6, 1.2]], "フロロ2〜4号"], "マダイ|タイラバ": [[["PE", 0.6, 1.2]], "フロロ3〜5号"], "マダイ|フカセ釣り": [[["ナイロン", 2.0, 4.0]], "フロロ2〜4号"], "ブリ|ショアジギング": [[["PE", 2.0, 3.0]], "フロロ8〜12号"], "ブリ|泳がせ釣り": [[["PE", 3.0, 5.0]], "フロロ8〜16号（船宿指定優先）"], "タチウオ|ルアー釣り": [[["PE", 0.8, 1.5]], "フロロ5〜8号＋必要に応じ耐切創先糸"], "タチウオ|ウキ釣り": [[["ナイロン", 3.0, 5.0]], "タチウオ用耐切創ハリス"], "ブラックバス|ルアー釣り": [[["フロロ", 2.0, 4.0], ["ナイロン", 2.0, 4.0]], "直結可（ベイトの一般例）"], "トラウト|ルアー釣り": [[["ナイロン", 0.6, 1.0], ["PE", 0.2, 0.4]], "PE使用時フロロ0.6〜1号"], "トラウト|エサ釣り": [[["ナイロン", 0.6, 1.5]], "フロロ0.4〜1号"], "アユ|友釣り": [[["フロロ", 0.15, 0.3]], "専用の水中糸・付け糸・ハナカン仕掛け"], "アユ|エサ釣り": [[["ナイロン", 0.4, 0.8]], "0.2〜0.5号のハリス"], "コイ|吸い込み釣り": [[["ナイロン", 4.0, 6.0]], "専用吸い込み仕掛け"], "コイ|ウキ釣り": [[["ナイロン", 2.0, 4.0]], "ハリス1.5〜3号"], "フナ|ウキ釣り": [[["ナイロン", 0.8, 1.5]], "ハリス0.4〜0.8号"], "ナマズ|ルアー釣り": [[["PE", 3.0, 5.0], ["ナイロン", 4.0, 6.0]], "PE使用時ナイロン5〜8号"], "ヤマメ|ルアー釣り": [[["ナイロン", 0.6, 1.0], ["PE", 0.3, 0.6]], "PE使用時フロロ0.8〜1.5号"], "ヤマメ|エサ釣り": [[["ナイロン", 0.2, 0.6]], "仕掛けに合うハリス"], "イワナ|ルアー釣り": [[["ナイロン", 0.6, 1.0], ["PE", 0.3, 0.6]], "PE使用時フロロ0.8〜1.5号"], "イワナ|エサ釣り": [[["ナイロン", 0.3, 0.8]], "仕掛けに合うハリス"]};
+function lineSpec08(p){return lineDB08[p.fish+'|'+p.method];}
+function lineText08(r){return r[0]+' '+r[1]+'〜'+r[2]+'号';}
+function lineJudge08(text,ranges){
+ const t=String(text||'').normalize('NFKC');
+ const kinds=['PE','ナイロン','フロロ','エステル'].filter(k=>t.toUpperCase().includes(k));
+ const m=t.match(/(\d+(?:\.\d+)?)\s*号/g);
+ if(kinds.length!==1||!m||m.length!==1||/lb|ポンド|〜|~|～|[0-9]\s*[-–]/i.test(t))return ['warn','種類・号数を要確認'];
+ const n=parseFloat(m[0]);
+ return ranges.some(r=>r[0]===kinds[0]&&n>=r[1]&&n<=r[2])?['good','推奨ラインの種類・号数の範囲内']:['warn','今回の推奨例とは異なる'];
+}
+const recommend07= recommendScreen;
+recommendScreen=function(){
+ recommend07();
+ const spec=lineSpec08(planData); if(!spec)return;
+ const [ranges,leader]=spec;
+ const heading=[...app.querySelectorAll('h3')].find(e=>e.textContent==='マイタックルとの照合');
+ if(!heading)return;
+ const panel=document.createElement('div'); panel.className='panel';
+ panel.innerHTML=`<h3>🧵 メインライン（道糸・水中糸）</h3>${ranges.map(r=>`<p><b>${esc(lineText08(r))}</b></p>`).join('')}<div class="reason">対象魚や仕掛けに合わせた一般的な目安です。</div><h3>リーダー・ハリス</h3><p>${esc(leader)}</p><small>魚のサイズ、障害物、水深、釣り場、製品仕様によって調整してください。船では船宿の指定を優先してください。号数とlbは一律換算できません。</small>`;
+ heading.before(panel);
+ const owned=read('tackle').filter(t=>t.category==='ライン'||(t.category==='リール'&&t.line));
+ const match=document.createElement('div');match.className='panel';
+ match.innerHTML='<b>ライン（道糸）</b>'+ (owned.length?owned.map(t=>{const j=lineJudge08(t.line,ranges);return `<p>${esc(t.name)}：${esc(t.line||'未設定')}<br><small class="${j[0]}">${j[1]}</small></p>`}).join(''):'<p class="bad">未登録</p>')+'<small>登録文字列の種類・号数のみ照合。リーダー、強度、ロッド適合は未判定。</small>';
+ const missing=[...app.querySelectorAll('h3')].find(e=>e.textContent==='未登録の釣具');
+ if(missing){missing.parentElement.before(match);if(!owned.length){const p=missing.parentElement.querySelector('p');p.textContent=p.textContent==='必要カテゴリは登録済み'?'ライン':p.textContent+'・ライン';}}
+};
+const checklist07=checklistItems;
+checklistItems=function(p){const items=checklist07(p);const spec=lineSpec08(p);if(spec){const item=items.find(x=>x.id==='line');if(item)item.name='ライン：'+spec[0].map(lineText08).join(' / ')+'；リーダー・ハリス：'+spec[1];}return items;};
+const settings07=settings;
+settings=function(){settings07();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 0.8';});};
+document.querySelector('footer').textContent='釣具なび（TACKLE NAVI） | Ver. 0.8';
+/* Ver.0.8 追加コード終了 */
 
 home();
 </script>
