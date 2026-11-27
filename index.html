@@ -3137,6 +3137,33 @@ const weatherBase11=fetchWeather06;fetchWeather06=function(i){let result=weather
 const settingsBase11=settings;settings=function(){settingsBase11();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 1.1';});};
 document.querySelector('footer').textContent='釣具なび（TACKLE NAVI） | Ver. 1.1';
 
+
+/* Ver.1.2 リール登録画面から装着ラインを直接選択 */
+const specBase12=specFields;
+specFields=function(t={}){
+ specBase12(t);if(value('category')!=='リール')return;
+ const old=document.getElementById('line');if(!old)return;
+ const c=current10(t),m=(c.legacy||'').match(/(PE|ナイロン|フロロ(?:カーボン)?|エステル|その他)\s*([\d.]+)\s*号/i);
+ const k=c.kind||(m?m[1].replace('カーボン','').replace(/^pe$/i,'PE'):'未設定'),g=c.gou||(m?m[2]:'');
+ old.parentElement.innerHTML=`現在巻いているライン（種類）<select id="reelKind12">${options(kinds10,k)}</select>`;
+ document.getElementById('specs').insertAdjacentHTML('beforeend',`${field('現在巻いているライン（号数）','reelGou12',g,'number','min="0.01" step="any"')}<small>メーカー・強度・巻き量・巻き替え履歴はライン・スプール管理で登録できます。</small>${c.legacy?`<p>従来の登録：${esc(c.legacy)}</p>`:''}`);
+ gouSelect11('reelGou12');
+};
+const saveBase12=saveTackle;
+saveTackle=function(e,i){
+ if(value('category')!=='リール')return saveBase12(e,i);
+ e.preventDefault();const a=read('tackle'),old=a[i]||{},t={...old};
+ for(const k of ['category','maker','name','size','reelType','memo'])t[k]=value(k);
+ ensure10(t);let c=t.spools10.find(s=>s.id===t.active10);if(!c){c=t.spools10[0];t.active10=c.id;}
+ const k=value('reelKind12'),g=value('reelGou12');
+ if((k==='未設定')!==(!g)){alert('ラインの種類と号数を両方選択するか、両方未設定にしてください。');return;}
+ if(g&&(!Number.isFinite(+g)||+g<=0)){alert('号数は正の数を入力してください。');return;}
+ if(k!=='未設定'&&g){c.kind=k;c.gou=g;c.legacy='';}else if(c.kind&&c.kind!=='未設定'){c.kind='未設定';c.gou='';}
+ t.line=desc10(c);if(i<0)a.push(t);else a[i]=t;if(write('tackle',a))spoolsScreen10(i<0?a.length-1:i);
+};
+const settingsBase12=settings;settings=function(){settingsBase12();app.querySelectorAll('p').forEach(e=>{if(/^バージョン\s/.test(e.textContent))e.textContent='バージョン 1.2';});};
+document.querySelector('footer').textContent='釣具なび（TACKLE NAVI） | Ver. 1.2';
+
 home();
 </script>
 </body>
