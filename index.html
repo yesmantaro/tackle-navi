@@ -100,7 +100,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 <body>
 <header role="button" tabindex="0" aria-label="トップ画面へ戻る" onclick="home()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();home()}">🎣 TACKLE NAVI</header>
 <main id="app"></main>
-<footer>TACKLE NAVI | Ver. 2.9</footer>
+<footer>TACKLE NAVI | Ver. 2.10</footer>
 <script>
 const app=document.getElementById('app');
 let planData={};
@@ -147,28 +147,33 @@ const methods={
 '吸い込み釣り':['コイ用ロッド','適合するリール','吸い込み仕掛け','3〜4m','3000〜5000番'],
 'タイラバ':['タイラバロッド','ベイトリール','タイラバ','6〜7ft','小型両軸']
 };
+const storageErrors210=new Set();
 function read(key){
-try{
-let d=JSON.parse(localStorage.getItem(key)||'[]');
-return Array.isArray(d)?d:[];
-}catch(e){return []}
+ try{const raw=localStorage.getItem(key);if(raw===null)return [];const v=JSON.parse(raw);if(!Array.isArray(v))throw Error('invalid');return v;}
+ catch(e){if(!storageErrors210.has(key)){storageErrors210.add(key);setTimeout(()=>alert('「'+key+'」の保存データを読み取れません。データを保護するため、この項目への上書きを停止しました。'),0);}return [];}
 }
+let savedNavigation210=false;
 function write(key,data){
-try{
-localStorage.setItem(key,JSON.stringify(data));
-return true;
-}catch(e){
-alert('保存できません。端末の空き容量や写真サイズを確認してください。');
-return false;
-}
+ if(storageErrors210.has(key)){alert('保存データに問題があるため上書きを中止しました。');return false;}
+ try{if(!Array.isArray(data))throw Error('invalid');const v=JSON.stringify(data);localStorage.setItem(key,v);if(localStorage.getItem(key)!==v)throw Error('verify');savedNavigation210=true;return true;}
+ catch(e){alert('保存できませんでした。端末の空き容量や写真サイズ、ブラウザの保存設定を確認してください。');return false;}
 }
 function esc(v){
 return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
 }
+let activeForm210=null;
 function show(html){
+if(activeForm210?.isConnected&&activeForm210.dataset.changed210==='1'&&!savedNavigation210){
+ if(!confirm('入力途中の変更が保存されていません。移動すると入力内容が失われます。移動しますか？'))return;
+}
+savedNavigation210=false;
+activeForm210=null;
 app.innerHTML=html;
 window.scrollTo(0,0);
+const f=app.querySelector('form');
+if(f){activeForm210=f;f.dataset.changed210='0';f.addEventListener('input',()=>f.dataset.changed210='1');f.addEventListener('change',()=>f.dataset.changed210='1');}
 }
+window.addEventListener('beforeunload',e=>{if(activeForm210?.isConnected&&activeForm210.dataset.changed210==='1'&&!savedNavigation210){e.preventDefault();e.returnValue='';}});
 function back(fn='home'){
 return `<button class="back" onclick="${fn}()">← 戻る</button>`
 }
@@ -622,14 +627,14 @@ show(back()+`
 <button class="primary" onclick="backup()">データをバックアップ</button>`)
 }
 function backup(){
-let data={version:'0.3',tackle:read('tackle'),plans:read('plans'),catches:read('catches'),tackleSets:read('tackleSets')};
-let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-let url=URL.createObjectURL(blob);
-let a=document.createElement('a');
-a.href=url;
-a.download='tackle-navi-backup-'+today()+'.json';
-a.click();
-setTimeout(()=>URL.revokeObjectURL(url),1000);
+ const keys=['tackle','plans','catches','tackleSets'];
+ if(keys.some(k=>storageErrors210.has(k))){alert('読み取りエラーがあるため、不完全なバックアップの作成を中止しました。');return;}
+ try{
+ const data={version:'2.10',exportedAt:new Date().toISOString()};
+ for(const k of keys){const raw=localStorage.getItem(k);const v=raw===null?[]:JSON.parse(raw);if(!Array.isArray(v))throw Error(k);data[k]=v;}
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='tackle-navi-backup-'+today()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);
+ }catch(e){alert('保存データの検証に失敗したため、バックアップを中止しました。');}
 }
 function pending(name){
 show(back()+`<h2>${name}</h2><div class="panel">この機能は今後追加します。</div>`)
@@ -3428,40 +3433,32 @@ settings=function(){
     <button class="sub" type="button" onclick="restoreBackup25()">ファイルを確認して復元</button>`;
   app.appendChild(panel);
   app.querySelectorAll('p').forEach(el=>{
-    if(/^バージョン\s/.test(el.textContent.trim()))el.textContent='バージョン 2.9';
+    if(/^バージョン\s/.test(el.textContent.trim()))el.textContent='バージョン 2.10';
   });
 };
 async function restoreBackup25(){
-  const input=document.getElementById('restoreFile25');
-  const file=input&&input.files&&input.files[0];
-  if(!file){alert('バックアップファイルを選択してください。');return;}
-  if(file.size>15*1024*1024){alert('ファイルが大きすぎます（15MBまで）。');return;}
-  let data;
-  try{data=JSON.parse(await file.text());}
-  catch(e){alert('JSONファイルを読み込めませんでした。');return;}
-  const keys=['tackle','plans','catches'];
-  if(!data||typeof data!=='object'||Array.isArray(data)||!keys.every(k=>Array.isArray(data[k]))){
-    alert('釣具なびのバックアップ形式ではありません。');return;
-  }
-  if(keys.some(k=>data[k].length>10000||data[k].some(v=>!v||typeof v!=='object'||Array.isArray(v)))){
-    alert('データの形式または件数が不正です。');return;
-  }
-  if(data.tackleSets!==undefined && (!Array.isArray(data.tackleSets)||data.tackleSets.length>10000||data.tackleSets.some(v=>!v||typeof v!=='object'||Array.isArray(v)))){alert('タックルセットの形式が不正です。');return;}
-  if(data.tackleSets!==undefined)keys.push('tackleSets');
-  const details=keys.map((k,i)=>['タックル','釣行プラン','釣果記録','タックルセット'][i]+'：'+data[k].length+'件').join('\n');
-  if(!confirm('次の内容で現在の登録データを上書きします。\n\n'+details+'\n\n現在のデータはバックアップ済みですか？'))return;
-  const previous={};
-  try{
-    keys.forEach(k=>previous[k]=localStorage.getItem(k));
-    // 3項目をすべて保存できる場合のみ完了とする。
-    keys.forEach(k=>localStorage.setItem(k,JSON.stringify(data[k])));
-  }catch(e){
-    keys.forEach(k=>{try{if(previous[k]===null)localStorage.removeItem(k);else if(previous[k]!==undefined)localStorage.setItem(k,previous[k]);}catch(_){} });
-    alert('復元に失敗しました。空き容量を確認してください。');return;
-  }
-  alert('復元しました。登録件数を確認してください。');settings();
+ const file=document.getElementById('restoreFile25')?.files?.[0];
+ if(!file){alert('バックアップファイルを選択してください。');return;}
+ if(file.size>30*1024*1024){alert('ファイルが大きすぎます（30MBまで）。');return;}
+ let data;
+ try{data=JSON.parse(await file.text());}catch(e){alert('JSONファイルを読み込めませんでした。');return;}
+ const base=['tackle','plans','catches'];
+ if(!data||typeof data!=='object'||Array.isArray(data)||!base.every(k=>Array.isArray(data[k]))||(data.tackleSets!==undefined&&!Array.isArray(data.tackleSets))){alert('釣具なびのバックアップ形式ではありません。');return;}
+ const keys=[...base,...(Array.isArray(data.tackleSets)?['tackleSets']:[])];
+ if(!keys.every(k=>data[k].length<=10000&&data[k].every(v=>v&&typeof v==='object'&&!Array.isArray(v)))){alert('登録内容の形式が不正です。');return;}
+ const labels={tackle:'マイタックル',plans:'釣行プラン',catches:'釣果記録',tackleSets:'タックルセット'};
+ const previous={},prepared={};let summary=[];
+ try{
+ for(const k of keys){previous[k]=localStorage.getItem(k);const current=previous[k]===null?[]:JSON.parse(previous[k]);if(!Array.isArray(current))throw Error(k);prepared[k]=JSON.stringify(data[k]);summary.push(labels[k]+'：現在 '+current.length+'件 → 復元後 '+data[k].length+'件');}
+ }catch(e){alert('現在の保存データを読み取れないため、復元を中止しました。');return;}
+ const note=keys.includes('tackleSets')?'':'\n※タックルセットは復元対象外（現在のデータを維持）';
+ if(!confirm('復元内容を確認してください。\n\n'+summary.join('\n')+note+'\n\n現在のデータは上書きされます。続けますか？'))return;
+ if(!confirm('最終確認：現在のデータをバックアップ済みですか？\nOKで復元を開始します。'))return;
+ try{for(const k of keys){localStorage.setItem(k,prepared[k]);if(localStorage.getItem(k)!==prepared[k])throw Error(k);}}
+ catch(e){let ok=true;for(const k of keys){try{if(previous[k]===null)localStorage.removeItem(k);else localStorage.setItem(k,previous[k]);}catch(_){ok=false;}}
+ alert(ok?'復元に失敗しました。元のデータに戻す処理を行いました。登録内容を確認してください。':'復元に失敗し、元のデータに戻せない項目がありました。ブラウザのデータを消さないでください。');return;}
+ keys.forEach(k=>storageErrors210.delete(k));alert('復元が完了しました。登録件数を確認してください。');savedNavigation210=true;settings();
 }
-
 
 /* Ver.2.9: タックルセット保存（端末内のみ、課金・共有なし） */
 function tackleSets29(){
@@ -3527,13 +3524,13 @@ const homeBefore29=home;
 home=function(){
   homeBefore29();
   const footer=document.querySelector('footer');
-  if(footer)footer.textContent='釣具なび（TACKLE NAVI） | Ver. 2.9';
+  if(footer)footer.textContent='釣具なび（TACKLE NAVI） | Ver. 2.10';
 };
 const settingsBefore29=settings;
 settings=function(){
   settingsBefore29();
   app.querySelectorAll('p').forEach(el=>{
-    if(/^バージョン\s/.test(el.textContent.trim()))el.textContent='バージョン 2.9';
+    if(/^バージョン\s/.test(el.textContent.trim()))el.textContent='バージョン 2.10';
   });
 };
 
